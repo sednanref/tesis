@@ -1,0 +1,19 @@
+/* $Id: CoinError.cpp 1215 2009-11-05 11:03:04Z forrest $ */
+// Copyright (C) 2005, International Business Machines
+// Corporation and others.  All Rights Reserved.
+
+#include "CoinError.hpp"
+
+bool CoinError::printErrors_ = false;
+
+/** A function to block the popup windows that windows creates when the code
+    crashes */
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+void WindowsErrorPopupBlocker()
+{
+  SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+}
+#else
+void WindowsErrorPopupBlocker() {}
+#endif

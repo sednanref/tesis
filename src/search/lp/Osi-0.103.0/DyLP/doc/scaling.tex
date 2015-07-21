@@ -1,0 +1,49 @@
+\section{Scaling}
+\label{sec:Scaling}
+
+\dylp provides the capability for row and column scaling of the original
+LP problem.
+This section develops the algebra used for scaling and describes
+some additional details of the implementation.
+The following section (\secref{sec:Solutions}) describes unscaling in the
+context of generating solution, ray, and tableau vectors for the client.
+
+Let $R$ be a diagonal matrix used to scale the rows of the LP problem and $S$
+be a diagonal matrix used to scale the columns of the LP problem.
+The original problem \eqnref{Eqn:BoundedPrimal} is scaled as
+\begin{align*}
+ \min \:(cS)(\inv{S}x) & \\
+     (RAS)(\inv{S}x) & \leq (Rb) \\
+     (\inv{S}l) \leq (\inv{S}x) & \leq (\inv{S}u)
+\intertext{to produce the scaled problem}
+  \min \breve{c}\breve{x} & & \\
+     \breve{A}\breve{x} & \leq \breve{b} \\
+     \breve{l} \leq \breve{x} & \leq \breve{u} \\
+\end{align*}
+where $\breve{A} = RAS$, $\breve{b} = Rb$, $\breve{c} = cS$,
+$\breve{l} = \inv{S}l$, $\breve{u} = \inv{S}u$, and $\breve{x} = \inv{S}x$.
+\dylp then treats the scaled problem as the original problem.
+
+By default, \dylp will calculate scaling matrices $R$ and $S$ and scale the
+constraint system unless the coefficients satisfy the conditions
+$.5 < \min_{ij} \abs{a_{ij}}$ and $\max_{ij} \abs{a_{ij}} < 2$.
+The client can forbid scaling entirely, or supply a pair of vectors that will
+be used as the diagonal coefficients of $R$ and $S$.
+
+A few additional details are helpful to understand the implementation.
+The first is that \dylp uses row scaling to convert `$\geq$' constraints to
+`$\leq$' constraints.
+Given a constraint system with `$\geq$' constraints, \dylp will generate
+scaling vectors with coefficients of $\pm 1.0$ even if scaling is otherwise
+forbidden.
+If scaling is active for numerical reasons, the relevant row scaling
+coefficients will be negated.
+
+\dylp scales the original constraint system before generating
+logical variables.
+Nonetheless, it is desirable to maintain a coefficient of 1.0 for each logical.
+The row scaling coefficient $r_{ii}$ for constraint $i$ is already determined.
+To keep the coefficients of logical variables at $1.0$, the column
+scaling factor is chosen to be $1/r_{ii}$ and the column scaling matrix $S$
+is conceptually extended to include logical variables.
+

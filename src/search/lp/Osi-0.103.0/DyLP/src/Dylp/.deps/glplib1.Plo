@@ -1,0 +1,6 @@
+glplib1.lo: glplib1.c /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h \
+ glplib.h
+
+/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h:
+
+glplib.h:

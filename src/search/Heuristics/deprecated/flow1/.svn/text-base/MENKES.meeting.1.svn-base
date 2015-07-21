@@ -1,0 +1,19 @@
+
+* Merge prevail w/ ALL that is consumed
+* PARTIAL_ENCODING=false solves driverlog/pfile8 but PARTIAL_ENCODING=true
+  doesn't solve driverlog/pfile8. IDEA=use mutexes to streghten out the
+  constraints of the LP (try to imitate PARTIAL_ENCODING=true). In driverlog,
+  the heuristic for init degrades a lot: pfile8 goes from 21 to 15.
+* Run experiments with bare LP + merging (without landmarks)
+
+AGENDA
+
+* Run by merging prevails w/ consumed
+* Handle second point above (DONE)
+* Zeno: merge fuel level w/ airplane location granted by unique property
+  in causal graph: FUEL only connected w/ LOCATION
+* Can check before-hand that new constraint of a merge is satisfied by
+  current solution. If so, skip to next merge.
+* compute landmarks once per state
+
+

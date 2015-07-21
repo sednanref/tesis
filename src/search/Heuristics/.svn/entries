@@ -1,0 +1,63 @@
+10
+
+dir
+48
+svn+ssh://svnmaster@maracaibo.ldc.usb.ve/space/svnrepo/repositories/software/fast-downward/src/search/Heuristics
+svn+ssh://svnmaster@maracaibo.ldc.usb.ve/space/svnrepo/repositories/software/fast-downward
+
+
+
+2014-07-11T15:53:42.518509Z
+48
+svnmaster
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+f0d664aa-6f85-4291-c229-e2ad77e449a6
+
+hitting_sets
+dir
+
+state_equation
+dir
+
+flow
+dir
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+svn+ssh://svnmaster@maracaibo.ldc.usb.ve/space/svnrepo/repositories/software/fast-downward/src/search/Heuristics/flows4
+47
+
+utils
+dir
+
+deprecated
+dir
+

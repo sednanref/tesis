@@ -1,0 +1,39 @@
+#! /bin/bash
+BASEDIR="$(dirname "$0")"
+option=$1
+
+export LD_LIBRARY_PATH=/homedtic/bbonet/software/downward/fast-downward/src/lplib/coin/lib:/homedtic/bbonet/software/downward/fast-downward/src/lplib/cplex/bin/x86-64_sles10_4.1
+
+if [[ "$option" == "simple-conversion" ]]; then
+    domain=$2
+    problem=$3
+    $BASEDIR/../simple-converter/simple-converter $domain $problem
+elif [[ "$option" == "translation" ]]; then
+    $BASEDIR/../translate/translate.py $domain $problem
+elif [[ "$option" == "preprocess" ]]; then
+    output=$2
+    echo FILE=$output
+    $BASEDIR/../preprocess/preprocess < $output
+elif [[ "$option" == "search" ]]; then
+    method=$2
+    output=$3
+    plan=$4
+    $BASEDIR/downward ipc $method < $output
+    rm -f plan_numbers_and_cost elapsed.time
+    sed "s/[()]//g" < sas_plan.1 > $plan
+    rm -f sas_plan.1
+elif [[ "$option" == "solve" ]]; then
+    domain=$2
+    problem=$3
+    $BASEDIR/lama simple-conversion $domain $problem
+    $BASEDIR/lama preprocess output.sas
+    rm -f output.sas
+    $BASEDIR/lama search seq-sat-lama-2011-single-plan output sas_plan
+    rm -f output
+else
+    echo "usage: lama simple-conversion <domain> <problem>"
+    echo "       lama preprocess <output>"
+    echo "       lama search <method> <output> <plan> (default method = \"seq-sat-lama-2011-single-plan\")"
+    echo "       lama solve <domain> <problem>"
+fi
+
