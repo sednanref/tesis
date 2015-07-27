@@ -545,7 +545,7 @@ int Heuristic::getTa(int var, int val){
 }
 
 int Heuristic::getF(int op, int var, int val){
-    return ((nprop_+nopr_)<<1)+(nprop_*op)+indexes_begin_var[var]+val;
+    return ((nprop_+nopr_)<<1)+(nprop_*op)+indexes_begin_var_[var]+val;
 }
 
 void Heuristic::add_first_const(vector<double> *lb){
