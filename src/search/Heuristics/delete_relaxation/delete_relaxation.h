@@ -330,6 +330,7 @@ struct TrSystem {
     std::map<const Proposition*, int> proposition_map_;
     std::map<const Operator*, int> operator_map_;
 
+
     TrSystem() { }
     virtual ~TrSystem() { }
 
@@ -400,6 +401,9 @@ class Heuristic : public ::Heuristic {
     std::vector<std::set<int> > propositions_mutex_with_precondition_;
     std::vector<std::set<int> > propositions_mutex_with_postcondition_;
 
+    std::vector<int> indexes_begin_prop_; //index in array start at... by propositions
+    std::vector<int> indexes_begin_op_; //index in array start at... by operator
+
     int nconstraints_;
     int ninactive_constraints_;
     OsiSolverInterface *osi_solver_;
@@ -464,7 +468,7 @@ class Heuristic : public ::Heuristic {
 
 
     //delete_rel functions
-    void add_first_const(std::vector<CoinPackedVector*> *osi_rows);
+    void add_first_const(std::vector<CoinPackedVector*> *osi_rows, std::vector<double> *);
     void add_second_const(std::vector<CoinPackedVector*> *osi_rows);
     void add_thrid_const(std::vector<CoinPackedVector*> *osi_rows);
     void add_fourth_const(std::vector<CoinPackedVector*> *osi_rows);

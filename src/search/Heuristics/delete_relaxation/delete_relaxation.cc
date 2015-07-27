@@ -278,9 +278,22 @@ void Heuristic::create_primitive_variables_and_propositions() {
     npropositions_ = 0;
     nprimitive_propositions_ = 0;
     primitive_propositions_.resize(nvariables_);
+
+    //added by delete_rel
+    indexes_begin_prop_.resize(nvariables_);
+
+
     for( int var = 0; var < nvariables_; ++var ) {
         int domain_size = g_variable_domain[var];
         primitive_propositions_[var].resize(domain_size);
+
+        if(!var){
+            indexes_begin_prop_[var] = 0;
+        }
+        else {
+            indexes_begin_prop_[var]=indexes_begin_prop_[var-1]+g_variable_domain[var-1];
+        }
+
         propositions_.reserve(propositions_.size() + domain_size);
         for( state_var_t val = 0; val < domain_size; ++val ) {
             PrimitiveProposition *primitive_proposition = new PrimitiveProposition(npropositions_, var, val);
@@ -515,12 +528,12 @@ void Heuristic::set_row_name(const Proposition *p) {
 #endif
 }
 
-void Heuristic::add_first_const(vector<CoinPackedVector*> *osi_rows){
+void Heuristic::add_first_const(vector<CoinPackedVector*> *osi_rows, vector<double> *lb){
     for(int i=0;i<g_goal.size();++i){
         int var = g[i].first;
         int val = g[i].second;
-        
-        
+        int idx = 2*nopr_+indexes_begin_prop_[var]+val;
+        lb[idx] = 1;
     }
 }
 
@@ -719,7 +732,7 @@ void Heuristic::create_base_lp() {
     }
 #else
 
-    add_first_const(&osi_rows);
+    add_first_const(&osi_rows,&osi_col_lb);
 
     add_second_const(&osi_rows);
 
