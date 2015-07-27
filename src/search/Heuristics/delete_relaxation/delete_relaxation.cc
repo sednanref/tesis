@@ -528,18 +528,59 @@ void Heuristic::set_row_name(const Proposition *p) {
 #endif
 }
 
-void Heuristic::add_first_const(vector<CoinPackedVector*> *osi_rows, vector<double> *lb){
+int Heuristic::getUo(int op_id){
+    return op_id;
+}
+
+int Heuristic::getTo(int op_id){
+    return get_Uo(op_id) + nopr_;
+}
+
+int Heuristic::getR(int var, int val){
+    return (nopr_<<1)+indexes_begin_var_[var]+val;
+}
+
+int Heuristic::getTa(int var, int val){
+    return nprop_+getR(var,val);
+}
+
+int Heuristic::getF(int op, int var, int val){
+    return ((nprop_+nopr_)<<1)+(nprop_*op)+indexes_begin_var[var]+val;
+}
+
+void Heuristic::add_first_const(vector<double> *lb){
     for(int i=0;i<g_goal.size();++i){
-        int var = g[i].first;
-        int val = g[i].second;
-        int idx = 2*nopr_+indexes_begin_var_[var]+val;
+        int var = g_goal[i].first;
+        int val = g_goal[i].second;
+        int idx = getR(var,val);
         lb[idx] = 1;
     }
 }
 
-void Heuristic::add_second_const(vector<CoinPackedVector*> *osi_rows){
 
+void Heuristic::add_second_const(vector<CoinPackedVector*> *osi_rows, vector<double> &lb,vector<double> &ub){
+    for(int var=0;i<nvariables_;++i){
+
+        for(int val=0;val<g_variable_domain[var];++val){
+
+            vector<Operator*> &prod = primitive_propositions_[var][val]->produced_by_;
+            CoinPackedVector *osi_row = new CoinPackedVector(true);
+            int Ra = getR(var,val);
+            osi_row->insert(Ra,-1);
+
+            for(int op=0;op<prod.size();++op){
+                int id_op = prod[op]->id_;
+                int Foa = getF(id_op,var,val);
+                osi_row->intsert(Foa,1);
+            }
+
+            osi_rows->push_back(osi_row);
+            lb.push_back(-1);
+            ub.push_back(osi_solver_->getInfinity());
+        }
+    }
 }
+
 
 void Heuristic::add_thrid_const(vector<CoinPackedVector*> *osi_rows){
 
@@ -732,9 +773,11 @@ void Heuristic::create_base_lp() {
     }
 #else
 
+    vector<double> osi_row_lb, osi_row_ub;
+
     add_first_const(&osi_rows,&osi_col_lb);
 
-    add_second_const(&osi_rows);
+    add_second_const(&osi_rows,osi_row_lb,osi_row_ub);
 
     add_third_const(&osi_rows);
 
@@ -751,7 +794,6 @@ void Heuristic::create_base_lp() {
 
     // Add rows and create lb's and ub's for rows.
     osi_matrix->appendRows(osi_rows.size(), reinterpret_cast<CoinPackedVectorBase**>(&osi_rows[0]));
-    vector<double> osi_row_lb(osi_rows.size(), 0), osi_row_ub(osi_rows.size(), 0);
     for( int i = 0; i < osi_rows.size(); ++i ) {
         osi_row_lb[i] = -1e6; //-1.0 * osi_solver_->getInfinity();
         osi_row_ub[i] = osi_solver_->getInfinity();
