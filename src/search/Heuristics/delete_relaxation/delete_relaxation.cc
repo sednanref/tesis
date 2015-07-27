@@ -280,7 +280,7 @@ void Heuristic::create_primitive_variables_and_propositions() {
     primitive_propositions_.resize(nvariables_);
 
     //added by delete_rel
-    indexes_begin_prop_.resize(nvariables_);
+    indexes_begin_var_.resize(nvariables_);
 
 
     for( int var = 0; var < nvariables_; ++var ) {
@@ -288,10 +288,10 @@ void Heuristic::create_primitive_variables_and_propositions() {
         primitive_propositions_[var].resize(domain_size);
 
         if(!var){
-            indexes_begin_prop_[var] = 0;
+            indexes_begin_var_[var] = 0;
         }
         else {
-            indexes_begin_prop_[var]=indexes_begin_prop_[var-1]+g_variable_domain[var-1];
+            indexes_begin_var_[var]=indexes_begin_var_[var-1]+g_variable_domain[var-1];
         }
 
         propositions_.reserve(propositions_.size() + domain_size);
@@ -532,7 +532,7 @@ void Heuristic::add_first_const(vector<CoinPackedVector*> *osi_rows, vector<doub
     for(int i=0;i<g_goal.size();++i){
         int var = g[i].first;
         int val = g[i].second;
-        int idx = 2*nopr_+indexes_begin_prop_[var]+val;
+        int idx = 2*nopr_+indexes_begin_var_[var]+val;
         lb[idx] = 1;
     }
 }

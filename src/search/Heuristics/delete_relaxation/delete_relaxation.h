@@ -401,7 +401,7 @@ class Heuristic : public ::Heuristic {
     std::vector<std::set<int> > propositions_mutex_with_precondition_;
     std::vector<std::set<int> > propositions_mutex_with_postcondition_;
 
-    std::vector<int> indexes_begin_prop_; //index in array start at... by propositions
+    std::vector<int> indexes_begin_var_; //index in array start at... by var
     std::vector<int> indexes_begin_op_; //index in array start at... by operator
 
     int nconstraints_;
