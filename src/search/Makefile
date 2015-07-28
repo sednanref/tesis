@@ -130,6 +130,8 @@ HEADERS += Heuristics/hitting_sets/relaxed.h \
 HEADERS += Heuristics/state_equation/state_equation_heuristic.h \
            Heuristics/flow/flow_heuristic.h \
 
+HEADERS += Heuristics/delete_relaxation/delete_relaxation.h \
+
 SHELL = /bin/bash
 
 SOURCES = planner.cc $(HEADERS:%.h=%.cc)
