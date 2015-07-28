@@ -1959,7 +1959,7 @@ ScalarEvaluator *_parse(OptionParser &parser) {
     return parser.dry_run() ? 0 : new Heuristic(opts);
 }
 
-Plugin<ScalarEvaluator> _plugin("flow", _parse);
+Plugin<ScalarEvaluator> _plugin("delete_rel", _parse);
 
 } // end of namespace
 
