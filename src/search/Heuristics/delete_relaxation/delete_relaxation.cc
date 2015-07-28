@@ -553,7 +553,7 @@ void Heuristic::add_first_const(vector<double> *lb){
         int var = g_goal[i].first;
         int val = g_goal[i].second;
         int idx = get_r(var,val);
-        lb[idx] = 1;
+        (*lb)[idx] = 1;
     }
 }
 
@@ -561,7 +561,7 @@ void Heuristic::add_first_const(vector<double> *lb){
 void Heuristic::add_second_const(vector<CoinPackedVector*> *osi_rows, vector<double> &lb,vector<double> &ub){
 
     //These constraints depends on state for lower bounds
-    for(int var=0;i<nvariables_;++i){
+    for(int var=0;var<nvariables_;++var){
 
         for(int val=0;val<g_variable_domain[var];++val){
 
@@ -573,7 +573,7 @@ void Heuristic::add_second_const(vector<CoinPackedVector*> *osi_rows, vector<dou
             for(int op=0;op<prod.size();++op){
                 int id_op = prod[op]->id_;
                 int Foa = get_f(id_op,var,val);
-                osi_row->intsert(Foa,1);
+                osi_row->insert(Foa,1);
             }
 
             osi_rows->push_back(osi_row);
@@ -614,10 +614,15 @@ void Heuristic::add_thrid_const(vector<CoinPackedVector*> *osi_rows, vector<doub
 void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<double> &lb,vector<double> &ub){
     for(int op=0;op<operators_.size();++op){
         int id_op = operators_[op]->id_; 
-        const vector<PrePost> &pre_post = operators_[op]->base_op_.get_pre_post();
+        PrimitiveOperator *ptr = dynamic_cast<PrimitiveOperator *> operators_[op];
+        if(!ptr) 
+            continue;
+
+        const vector<PrePost> &pre_post = ptr->base_op_.get_pre_post();
+
         for(int j =0; j< pre_post.size();++j){
             int var = pre_post[j].var;
-            int val = pre_post[j].val;
+            int val = pre_post[j].pre;
 
             int id_u = get_uo(id_op);
             int id_r = get_r(var,val);
@@ -628,7 +633,7 @@ void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<dou
             osi_rows->push_back(osi_row);
 
             lb.push_back(0);
-            up.push_back(osi_solver_->getInfinity());
+            ub.push_back(osi_solver_->getInfinity());
         }   
     }
 
@@ -638,10 +643,14 @@ void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<dou
 void Heuristic::add_fifth_const(vector<CoinPackedVector*> *osi_rows, vector<double> &lb,vector<double> &ub){
     for(int op=0;op<operators_.size();++op){
         int id_op = operators_[op]->id_; 
-        const vector<PrePost> &pre_post = operators_[op]->base_op_.get_pre_post();
+        PrimitiveOperator *ptr = dynamic_cast<PrimitiveOperator *> operators_[op];
+        if(!ptr) 
+            continue;
+
+        const vector<PrePost> &pre_post = ptr->base_op_.get_pre_post();
         for(int j =0; j< pre_post.size();++j){
             int var = pre_post[j].var;
-            int val = pre_post[j].val;
+            int val = pre_post[j].pre;
 
             int id_to = get_to(id_op);
             int id_ta = get_ta(var,val);
@@ -652,7 +661,7 @@ void Heuristic::add_fifth_const(vector<CoinPackedVector*> *osi_rows, vector<doub
             osi_rows->push_back(osi_row);
 
             lb.push_back(0);
-            up.push_back(osi_solver_->getInfinity());
+            ub.push_back(osi_solver_->getInfinity());
         }   
     }    
 
@@ -747,11 +756,11 @@ void Heuristic::create_base_lp() {
 #endif
 
     //number
-    nprop_ = nprpositions_;
+    nprop_ = npropositions_;
     nopr_  = noperators_;
 
     //variables in delete relaxation model
-    nvars_ = 2*(nopr+nprop) + nopr*nprop;
+    nvars_ = 2*(nopr_+nprop_) + nopr_*nprop_;
 
 
     // Variables
@@ -778,7 +787,7 @@ void Heuristic::create_base_lp() {
             osi_col_ub[i]=1;
         }
         //ub for Ta variables
-        else if(i<2*(nopr_+npop_)){
+        else if(i<((nopr_+nprop_)<<1){
             osi_col_ub[i]=nopr_;
         }
         //up for F variables
@@ -803,7 +812,7 @@ void Heuristic::create_base_lp() {
 
     // Constraints.
     CoinPackedMatrix *osi_matrix = new CoinPackedMatrix(false, 0, 0);
-    osi_matrix->setDimensions(0, vars);
+    osi_matrix->setDimensions(0, nvars_);
     vector<CoinPackedVector*> osi_rows;
 
     nconstraints_ = 0;
