@@ -467,19 +467,20 @@ class Heuristic : public ::Heuristic {
     int compute_heuristic(const State &state);
 
 
-    int getUo(int,int);
-    int getTo(int,int);
-    int getF(int,int,int);
-    int getR(int,int);
-    int getTa(int,int);
+    //get variables' indexes
+    int get_uo(int);
+    int get_to(int);
+    int get_f(int,int,int);
+    int get_r(int,int);
+    int get_ta(int,int);
 
     //delete_rel functions
     void add_first_const(std::vector<double> *);
-    void add_second_const(std::vector<CoinPackedVector*> *osi_rows,std::vector<double> &,std::vector<double> &);
-    void add_thrid_const(std::vector<CoinPackedVector*> *osi_rows);
-    void add_fourth_const(std::vector<CoinPackedVector*> *osi_rows);
-    void add_fifth_const(std::vector<CoinPackedVector*> *osi_rows);
-    void add_sixth_const(std::vector<CoinPackedVector*> *osi_rows);
+    void add_second_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
+    void add_thrid_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
+    void add_fourth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
+    void add_fifth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
+    void add_sixth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
 
 
 public:

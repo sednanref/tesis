@@ -528,23 +528,23 @@ void Heuristic::set_row_name(const Proposition *p) {
 #endif
 }
 
-int Heuristic::getUo(int op_id){
+int Heuristic::get_uo(int op_id){
     return op_id;
 }
 
-int Heuristic::getTo(int op_id){
-    return get_Uo(op_id) + nopr_;
+int Heuristic::get_to(int op_id){
+    return get_uo(op_id) + nopr_;
 }
 
-int Heuristic::getR(int var, int val){
+int Heuristic::get_r(int var, int val){
     return (nopr_<<1)+indexes_begin_var_[var]+val;
 }
 
-int Heuristic::getTa(int var, int val){
-    return nprop_+getR(var,val);
+int Heuristic::get_ta(int var, int val){
+    return nprop_+get_r(var,val);
 }
 
-int Heuristic::getF(int op, int var, int val){
+int Heuristic::get_f(int op, int var, int val){
     return ((nprop_+nopr_)<<1)+(nprop_*op)+indexes_begin_var_[var]+val;
 }
 
@@ -552,25 +552,27 @@ void Heuristic::add_first_const(vector<double> *lb){
     for(int i=0;i<g_goal.size();++i){
         int var = g_goal[i].first;
         int val = g_goal[i].second;
-        int idx = getR(var,val);
+        int idx = get_r(var,val);
         lb[idx] = 1;
     }
 }
 
 
 void Heuristic::add_second_const(vector<CoinPackedVector*> *osi_rows, vector<double> &lb,vector<double> &ub){
+
+    //These constraints depends on state for lower bounds
     for(int var=0;i<nvariables_;++i){
 
         for(int val=0;val<g_variable_domain[var];++val){
 
             vector<Operator*> &prod = primitive_propositions_[var][val]->produced_by_;
             CoinPackedVector *osi_row = new CoinPackedVector(true);
-            int Ra = getR(var,val);
+            int Ra = get_r(var,val);
             osi_row->insert(Ra,-1);
 
             for(int op=0;op<prod.size();++op){
                 int id_op = prod[op]->id_;
-                int Foa = getF(id_op,var,val);
+                int Foa = get_f(id_op,var,val);
                 osi_row->intsert(Foa,1);
             }
 
@@ -582,19 +584,108 @@ void Heuristic::add_second_const(vector<CoinPackedVector*> *osi_rows, vector<dou
 }
 
 
-void Heuristic::add_thrid_const(vector<CoinPackedVector*> *osi_rows){
+void Heuristic::add_thrid_const(vector<CoinPackedVector*> *osi_rows, vector<double> &lb,vector<double> &ub){
+    for(int op = 0 ; op<operators_.size(); ++op){
+        vector<Proposition*> &pr = operators_[op]->produces_;
+
+        int id_op = operators_[op]->id_;
+
+        for(int j =0;j<pr.size();++j){
+            PrimitiveProposition *ptr = dynamic_cast<PrimitiveProposition *>(pr[j]);
+            if(!ptr)
+                continue;
+
+            int var = ptr->var_;
+            int val = ptr->val_;
+            int id_u = get_uo(id_op);
+            int id_f = get_f(id_op,var,val);
+
+            CoinPackedVector *osi_row = new CoinPackedVector(true);
+            osi_row->insert(id_u,1);
+            osi_row->insert(id_f,-1);
+            osi_rows->push_back(osi_row);
+            lb.push_back(0);
+            ub.push_back(osi_solver_->getInfinity());
+        }
+
+    }
+}
+
+void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<double> &lb,vector<double> &ub){
+    for(int op=0;op<operators_.size();++op){
+        int id_op = operators_[op]->id_; 
+        const vector<PrePost> &pre_post = operators_[op]->base_op_.get_pre_post();
+        for(int j =0; j< pre_post.size();++j){
+            int var = pre_post[j].var;
+            int val = pre_post[j].val;
+
+            int id_u = get_uo(id_op);
+            int id_r = get_r(var,val);
+
+            CoinPackedVector *osi_row = new CoinPackedVector(true);
+            osi_row->insert(id_r,1);
+            osi_row->insert(id_u,-1);
+            osi_rows->push_back(osi_row);
+
+            lb.push_back(0);
+            up.push_back(osi_solver_->getInfinity());
+        }   
+    }
+
 
 }
 
-void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows){
+void Heuristic::add_fifth_const(vector<CoinPackedVector*> *osi_rows, vector<double> &lb,vector<double> &ub){
+    for(int op=0;op<operators_.size();++op){
+        int id_op = operators_[op]->id_; 
+        const vector<PrePost> &pre_post = operators_[op]->base_op_.get_pre_post();
+        for(int j =0; j< pre_post.size();++j){
+            int var = pre_post[j].var;
+            int val = pre_post[j].val;
+
+            int id_to = get_to(id_op);
+            int id_ta = get_ta(var,val);
+
+            CoinPackedVector *osi_row = new CoinPackedVector(true);
+            osi_row->insert(id_to,1);
+            osi_row->insert(id_ta,-1);
+            osi_rows->push_back(osi_row);
+
+            lb.push_back(0);
+            up.push_back(osi_solver_->getInfinity());
+        }   
+    }    
 
 }
 
-void Heuristic::add_fifth_const(vector<CoinPackedVector*> *osi_rows){
+void Heuristic::add_sixth_const(vector<CoinPackedVector*> *osi_rows, vector<double> &lb,vector<double> &ub){
+    for(int op = 0 ; op<operators_.size(); ++op){
+        vector<Proposition*> &pr = operators_[op]->produces_;
+        for(int j =0;j<pr.size();++j){
+            PrimitiveProposition *ptr = dynamic_cast<PrimitiveProposition *>(pr[j]);
+            if(!ptr)
+                continue;
 
-}
+            int id_op = operators_[op]->id_;
+            int var = ptr->var_;
+            int val = ptr->val_;
+            int id_to = get_to(id_op);
+            int id_ta = get_ta(var,val);
+            int id_f = get_f(id_op,var,val);
+            int m = nopr_+1;
 
-void Heuristic::add_sixth_const(vector<CoinPackedVector*> *osi_rows){
+            CoinPackedVector *osi_row = new CoinPackedVector(true);
+
+            osi_row->insert(id_ta,1);
+            osi_row->insert(id_f,-m);
+            osi_row->insert(id_to,-1);
+            osi_rows->push_back(osi_row);
+
+            lb.push_back(1-m);
+            ub.push_back(osi_solver_->getInfinity());
+        }
+
+    }
 
 }
 
@@ -775,17 +866,17 @@ void Heuristic::create_base_lp() {
 
     vector<double> osi_row_lb, osi_row_ub;
 
-    add_first_const(&osi_rows,&osi_col_lb);
+    add_first_const(&osi_col_lb);
 
     add_second_const(&osi_rows,osi_row_lb,osi_row_ub);
 
-    add_third_const(&osi_rows);
+    add_third_const(&osi_rows,osi_row_lb,osi_row_ub);
 
-    add_fourth_const(&osi_rows);
+    add_fourth_const(&osi_rows,osi_row_lb,osi_row_ub);
 
-    add_fifth_const(&osi_rows);
+    add_fifth_const(&osi_rows,osi_row_lb,osi_row_ub);
 
-    add_sixth_const(&osi_rows);
+    add_sixth_const(&osi_rows,osi_row_lb,osi_row_ub);
 
 
 
