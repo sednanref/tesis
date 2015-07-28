@@ -577,7 +577,7 @@ void Heuristic::add_second_const(vector<CoinPackedVector*> *osi_rows, vector<dou
             }
 
             osi_rows->push_back(osi_row);
-            lb.push_back(-1);
+            lb.push_back(0);
             ub.push_back(osi_solver_->getInfinity());
         }
     }
