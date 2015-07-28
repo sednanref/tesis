@@ -584,7 +584,7 @@ void Heuristic::add_second_const(vector<CoinPackedVector*> *osi_rows, vector<dou
 }
 
 
-void Heuristic::add_thrid_const(vector<CoinPackedVector*> *osi_rows, vector<double> &lb,vector<double> &ub){
+void Heuristic::add_third_const(vector<CoinPackedVector*> *osi_rows, vector<double> &lb,vector<double> &ub){
     for(int op = 0 ; op<operators_.size(); ++op){
         vector<Proposition*> &pr = operators_[op]->produces_;
 
