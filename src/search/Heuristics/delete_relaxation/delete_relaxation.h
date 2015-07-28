@@ -477,7 +477,7 @@ class Heuristic : public ::Heuristic {
     //delete_rel functions
     void add_first_const(std::vector<double> *);
     void add_second_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
-    void add_thrid_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
+    void add_third_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
     void add_fourth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
     void add_fifth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
     void add_sixth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);

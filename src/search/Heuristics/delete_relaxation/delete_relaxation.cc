@@ -614,7 +614,7 @@ void Heuristic::add_thrid_const(vector<CoinPackedVector*> *osi_rows, vector<doub
 void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<double> &lb,vector<double> &ub){
     for(int op=0;op<operators_.size();++op){
         int id_op = operators_[op]->id_; 
-        PrimitiveOperator *ptr = dynamic_cast<PrimitiveOperator *> operators_[op];
+        PrimitiveOperator *ptr = dynamic_cast<PrimitiveOperator *>(operators_[op]);
         if(!ptr) 
             continue;
 
@@ -643,7 +643,7 @@ void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<dou
 void Heuristic::add_fifth_const(vector<CoinPackedVector*> *osi_rows, vector<double> &lb,vector<double> &ub){
     for(int op=0;op<operators_.size();++op){
         int id_op = operators_[op]->id_; 
-        PrimitiveOperator *ptr = dynamic_cast<PrimitiveOperator *> operators_[op];
+        PrimitiveOperator *ptr = dynamic_cast<PrimitiveOperator *>(operators_[op]);
         if(!ptr) 
             continue;
 
@@ -787,7 +787,7 @@ void Heuristic::create_base_lp() {
             osi_col_ub[i]=1;
         }
         //ub for Ta variables
-        else if(i<((nopr_+nprop_)<<1){
+        else if(i<((nopr_+nprop_)<<1)){
             osi_col_ub[i]=nopr_;
         }
         //up for F variables
