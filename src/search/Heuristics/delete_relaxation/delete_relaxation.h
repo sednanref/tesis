@@ -494,22 +494,22 @@ public:
 } // end of namespace
 
 
-std::ostream& operator<<(std::ostream &os, const Flow::Variable &var) {
+std::ostream& operator<<(std::ostream &os, const Delete_rel::Variable &var) {
     var.dump(os);
     return os;
 }
 
-std::ostream& operator<<(std::ostream &os, const Flow::Proposition &prop) {
+std::ostream& operator<<(std::ostream &os, const Delete_rel::Proposition &prop) {
     prop.dump(os);
     return os;
 }
 
-std::ostream& operator<<(std::ostream &os, const Flow::Operator &op) {
+std::ostream& operator<<(std::ostream &os, const Delete_rel::Operator &op) {
     op.dump(os);
     return os;
 }
 
-std::ostream& operator<<(std::ostream &os, const Flow::TrSystem &trs) {
+std::ostream& operator<<(std::ostream &os, const Delete_rel::TrSystem &trs) {
     trs.dump(os);
     return os;
 }
