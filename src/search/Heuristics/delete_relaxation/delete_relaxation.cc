@@ -567,8 +567,8 @@ void Heuristic::correct_model(const State &state){
 
 
     //Putting integer values for all variables
-    for(int vars = 0;var<nvars_;var++){
-        osi_solver_->setInteger(vars);
+    for(int var = 0;var<nvars_;++var){
+        osi_solver_->setInteger(var);
     }
 
 }
@@ -1861,7 +1861,7 @@ int Heuristic::compute_heuristic(const State &state) {
     //correction for S(a) values
     //and correct for integer values
     correct_model(state);
-    bool infeasible = solve_lp();
+    bool infeasible = solve_lp(state,true);
     int heuristic_value = -1;
     if(infeasible){
         heuristic_value = DEAD_END;
