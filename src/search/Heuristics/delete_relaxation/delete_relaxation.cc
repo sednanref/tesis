@@ -565,9 +565,11 @@ void Heuristic::correct_model(const State &state){
 
 
     //Putting integer values for all variables
+    /*
     for(int var = 0;var<nvars_;++var){
         osi_solver_->setInteger(var);
     }
+    */
 
 }
 
@@ -934,6 +936,11 @@ void Heuristic::create_base_lp() {
         set_row_name(propositions_[i]);
     for( int i = 0; i < noperators_; ++i )
         set_column_name(operators_[i]);
+
+    //set variables to being integers
+    for(int i=0;i<nvars_;++i){
+        osi_solver_->setInteger(i);
+    }
 
     // Initialize solver and clean.
     osi_solver_->messageHandler()->setLogLevel(0);
