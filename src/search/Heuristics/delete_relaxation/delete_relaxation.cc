@@ -559,7 +559,7 @@ void Heuristic::correct_model(const State &state){
             int idx = 0;
             idx+=indexes_begin_var_[var];
             idx+=val;
-            osi_row_lb[idx]=-1;
+            osi_solver_->setRowBounds(idx,-1,osi_solver_->getInfinity());
         }
     }
 
