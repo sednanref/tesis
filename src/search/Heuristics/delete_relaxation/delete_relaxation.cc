@@ -602,6 +602,7 @@ void Heuristic::add_second_const(vector<CoinPackedVector*> *osi_rows, vector<dou
             }
 
             osi_rows->push_back(osi_row);
+            nconstraints_++;
             lb.push_back(0);
             ub.push_back(osi_solver_->getInfinity());
         }
@@ -629,6 +630,7 @@ void Heuristic::add_third_const(vector<CoinPackedVector*> *osi_rows, vector<doub
             osi_row->insert(id_u,1);
             osi_row->insert(id_f,-1);
             osi_rows->push_back(osi_row);
+            nconstraints_++;
             lb.push_back(0);
             ub.push_back(osi_solver_->getInfinity());
         }
@@ -656,7 +658,7 @@ void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<dou
             osi_row->insert(id_r,1);
             osi_row->insert(id_u,-1);
             osi_rows->push_back(osi_row);
-
+            nconstraints_++;
             lb.push_back(0);
             ub.push_back(osi_solver_->getInfinity());
         }   
@@ -684,7 +686,7 @@ void Heuristic::add_fifth_const(vector<CoinPackedVector*> *osi_rows, vector<doub
             osi_row->insert(id_to,1);
             osi_row->insert(id_ta,-1);
             osi_rows->push_back(osi_row);
-
+            nconstraints_++;
             lb.push_back(0);
             ub.push_back(osi_solver_->getInfinity());
         }   
@@ -714,7 +716,7 @@ void Heuristic::add_sixth_const(vector<CoinPackedVector*> *osi_rows, vector<doub
             osi_row->insert(id_f,-m);
             osi_row->insert(id_to,-1);
             osi_rows->push_back(osi_row);
-
+            nconstraints_++;
             lb.push_back(1-m);
             ub.push_back(osi_solver_->getInfinity());
         }
