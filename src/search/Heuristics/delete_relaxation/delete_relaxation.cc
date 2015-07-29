@@ -548,6 +548,31 @@ int Heuristic::get_f(int op, int var, int val){
     return ((nprop_+nopr_)<<1)+(nprop_*op)+indexes_begin_var_[var]+val;
 }
 
+
+
+void Heuristic::correct_model(const State &state){
+
+    //Correcting S(a) for second constraint
+    for(int var=0;var<nvariables_;++var){
+        int val = state[var];
+        if(val>=0 && val<g_variable_domain[var]){
+            int idx = 0;
+            if(var) {
+                idx+=indexes_begin_var_[var-1];
+            }
+            idx+=val;
+            osi_row_lb[idx]=-1;
+        }
+    }
+
+
+    //Putting integer values for all variables
+    for(int vars = 0;var<nvars_;var++){
+        osi_solver_->setInteger(vars);
+    }
+
+}
+
 void Heuristic::add_first_const(vector<double> *lb){
     for(int i=0;i<g_goal.size();++i){
         int var = g_goal[i].first;
@@ -873,7 +898,7 @@ void Heuristic::create_base_lp() {
     }
 #else
 
-    vector<double> osi_row_lb, osi_row_ub;
+    osi_row_lb.clear(); osi_row_ub.clear();
 
     add_first_const(&osi_col_lb);
 
@@ -1743,7 +1768,7 @@ void Heuristic::insert_landmark_constraints() {
 bool Heuristic::solve_lp(const State &state, bool set_active_operators) {
     // call LP solver
     try {
-        insert_landmark_constraints();
+        //insert_landmark_constraints();
         //osi_solver_->writeLp(ss.str().c_str());
         osi_solver_->resolve();
         lp_value_ = (float)osi_solver_->getObjValue();
@@ -1783,7 +1808,7 @@ bool Heuristic::solve_lp(const State &state, bool set_active_operators) {
             }
         }
 
-        remove_landmark_constraints();
+        //remove_landmark_constraints();
     } catch( CoinError &ex ) {
         cerr << "Exception:" << ex.message() << endl
              << " from method " << ex.methodName() << endl
@@ -1793,8 +1818,10 @@ bool Heuristic::solve_lp(const State &state, bool set_active_operators) {
     return false;
 }
 
+
 int Heuristic::compute_heuristic(const State &state) {
     // Compute hmax value: if dead end, return immediately.
+    #if 0
     int hmax_value = safe_to_max_with_hmax_ && (hmax_heuristic_ != 0) ? hmax_heuristic_->compute_heuristic(state) : 0;
     if( hmax_value == DEAD_END ) {
         //histogram_push(0, numeric_limits<int>::max());
@@ -1829,6 +1856,20 @@ int Heuristic::compute_heuristic(const State &state) {
     }
     //histogram_push(0, heuristic_value);
     //cout << "lp-value " << lp_value_ << " h " << heuristic_value << endl;
+    #endif
+
+    //correction for S(a) values
+    //and correct for integer values
+    correct_model(state);
+    bool infeasible = solve_lp();
+    int heuristic_value = -1;
+    if(infeasible){
+        heuristic_value = DEAD_END;
+    }
+    else{
+        heuristic_value = lp_value_;
+    }
+
     return heuristic_value;
 }
 

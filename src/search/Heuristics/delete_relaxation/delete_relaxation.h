@@ -404,6 +404,9 @@ class Heuristic : public ::Heuristic {
     std::vector<int> indexes_begin_var_; //index in array start at... by var
     std::vector<int> indexes_begin_op_; //index in array start at... by operator
 
+    vector<double> osi_row_lb, osi_row_ub;
+
+
     int nconstraints_;
     int ninactive_constraints_;
     OsiSolverInterface *osi_solver_;
@@ -481,6 +484,9 @@ class Heuristic : public ::Heuristic {
     void add_fourth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
     void add_fifth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
     void add_sixth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
+
+    void correct_model(const State &);
+
 
 
 public:
