@@ -559,7 +559,7 @@ void Heuristic::correct_model(const State &state){
             int idx = 0;
             idx+=indexes_begin_var_[var];
             idx+=val;
-            osi_solver_->setRowBounds(idx,-1,osi_solver_->getInfinity());
+            osi_solver_->setRowLower(idx,-1);
         }
     }
 
@@ -928,6 +928,12 @@ void Heuristic::create_base_lp() {
         osi_row_ub[i] = osi_solver_->getInfinity();
     }
     #endif
+
+    //set variables to being integers
+    for(int i=0;i<nvars_;++i){
+        osi_solver_->setInteger(i);
+    }
+
     // Load matrix, set objective sense, and set row/col names
     osi_solver_->loadProblem(*osi_matrix, &osi_col_lb[0], &osi_col_ub[0], &osi_obj_fn[0], &osi_row_lb[0], &osi_row_ub[0]);
     osi_solver_->setObjSense(1);
@@ -936,11 +942,6 @@ void Heuristic::create_base_lp() {
         set_row_name(propositions_[i]);
     for( int i = 0; i < noperators_; ++i )
         set_column_name(operators_[i]);
-
-    //set variables to being integers
-    for(int i=0;i<nvars_;++i){
-        osi_solver_->setInteger(i);
-    }
 
     // Initialize solver and clean.
     osi_solver_->messageHandler()->setLogLevel(0);
