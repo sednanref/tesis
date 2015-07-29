@@ -1873,7 +1873,7 @@ int Heuristic::compute_heuristic(const State &state) {
     else{
         heuristic_value = lp_value_;
     }
-
+    cout <<"value for heuristic = " << lp_value_ << endl;
     return heuristic_value;
 }
 
