@@ -557,9 +557,7 @@ void Heuristic::correct_model(const State &state){
         int val = state[var];
         if(val>=0 && val<g_variable_domain[var]){
             int idx = 0;
-            if(var) {
-                idx+=indexes_begin_var_[var-1];
-            }
+            idx+=indexes_begin_var_[var];
             idx+=val;
             osi_row_lb[idx]=-1;
         }
@@ -1873,7 +1871,7 @@ int Heuristic::compute_heuristic(const State &state) {
     else{
         heuristic_value = lp_value_;
     }
-    cout <<"value for heuristic = " << lp_value_ << endl;
+    //cout <<"value for heuristic = " << lp_value_ << endl;
     return heuristic_value;
 }
 
