@@ -921,11 +921,13 @@ void Heuristic::create_base_lp() {
 
     // Add rows and create lb's and ub's for rows.
     osi_matrix->appendRows(osi_rows.size(), reinterpret_cast<CoinPackedVectorBase**>(&osi_rows[0]));
+
+    #if 0
     for( int i = 0; i < osi_rows.size(); ++i ) {
         osi_row_lb[i] = -1e6; //-1.0 * osi_solver_->getInfinity();
         osi_row_ub[i] = osi_solver_->getInfinity();
     }
-
+    #endif
     // Load matrix, set objective sense, and set row/col names
     osi_solver_->loadProblem(*osi_matrix, &osi_col_lb[0], &osi_col_ub[0], &osi_obj_fn[0], &osi_row_lb[0], &osi_row_ub[0]);
     osi_solver_->setObjSense(1);
