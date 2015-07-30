@@ -929,19 +929,14 @@ void Heuristic::create_base_lp() {
     }
     #endif
 
+    // Load matrix, set objective sense, and set row/col names
+    osi_solver_->loadProblem(*osi_matrix, &osi_col_lb[0], &osi_col_ub[0], &osi_obj_fn[0], &osi_row_lb[0], &osi_row_ub[0]);
+    osi_solver_->setObjSense(1);
+    
     //set variables to being integers
     for(int i=0;i<nvars_;++i){
         osi_solver_->setInteger(i);
     }
-
-    // Load matrix, set objective sense, and set row/col names
-    osi_solver_->loadProblem(*osi_matrix, &osi_col_lb[0], &osi_col_ub[0], &osi_obj_fn[0], &osi_row_lb[0], &osi_row_ub[0]);
-    osi_solver_->setObjSense(1);
-    //osi_solver_->setObjName("flow");
-    for( int i = 0; !empty_base_lp_ && (i < npropositions_); ++i )
-        set_row_name(propositions_[i]);
-    for( int i = 0; i < noperators_; ++i )
-        set_column_name(operators_[i]);
 
     // Initialize solver and clean.
     osi_solver_->messageHandler()->setLogLevel(0);
