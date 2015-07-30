@@ -651,6 +651,11 @@ void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<dou
             int var = pre_post[j].var;
             int val = pre_post[j].pre;
 
+            if(val<0){
+                continue;
+            }
+
+
             int id_u = get_uo(id_op);
             int id_r = get_r(var,val);
 
@@ -678,6 +683,10 @@ void Heuristic::add_fifth_const(vector<CoinPackedVector*> *osi_rows, vector<doub
         for(int j =0; j< pre_post.size();++j){
             int var = pre_post[j].var;
             int val = pre_post[j].pre;
+
+            if(val<0){
+                continue;
+            }
 
             int id_to = get_to(id_op);
             int id_ta = get_ta(var,val);
