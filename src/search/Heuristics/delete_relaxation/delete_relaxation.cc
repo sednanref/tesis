@@ -193,9 +193,9 @@ void Heuristic::initialize() {
 
     // create base model and LP
     create_primitive_variables_and_propositions();
-    create_primitive_dtgs();
+    //create_primitive_dtgs();
     create_primitive_operators();
-    preprocess();
+    //preprocess();
     create_base_lp();
 
     // Create and initialize hmax heuristic.
