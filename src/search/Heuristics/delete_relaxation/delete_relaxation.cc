@@ -1881,7 +1881,7 @@ int Heuristic::compute_heuristic(const State &state) {
         heuristic_value = DEAD_END;
     }
     else{
-        heuristic_value = lp_value_;
+        heuristic_value = (int)ceilf(lp_value_);
     }
     //cout <<"value for heuristic = " << lp_value_ << endl;
     return heuristic_value;
