@@ -570,12 +570,18 @@ void Heuristic::correct_model(const State &state){
     }
 
 
-    //Putting integer values for all variables
-    /*
-    for(int var = 0;var<nvars_;++var){
-        osi_solver_->setInteger(var);
+    //adding constraints from SEQ
+    if(0x1 & use_seq_){
+        int init = begin_const_seq_;
+        for(int var=0;var<nvariables_;++var){
+            for(int val=0;val<g_variable_domain[var];++val){
+                int ga = tmp_goal_[var]==val;
+                int sa = state[var]==val;
+                osi_solver_->setRowLower(init,ga-sa);
+                init++;
+            }
+        }
     }
-    */
 
 }
 
@@ -765,7 +771,20 @@ void Heuristic::add_eighth_const(std::vector<CoinPackedVector*> *osi_rows,std::v
         for(int val=0;val<g_variable_domain[var];++val){
             CoinPackedVector *osi_row = new CoinPackedVector(true);
 
-            
+            std::vector<Operator *> &consumed = primitive_propositions_[var][val]->consumed_by_;
+            std::vector<Operator *> &produced = primitive_propositions_[var][val]->produced_by_;
+
+            for(int i=0;i<produced.size();++i){
+                int id_op = produced[i]->id_;
+                int yo = get_yo(id_op);
+                osi_row->insert(yo,1);
+            }
+
+            for(int i=0;i<consumed.size();++i){
+                int id_op = consumed[i]->id_;
+                int yo = get_yo(id_op);
+                osi_row->insert(yo,-1);
+            }
 
 
             nconstraints_++;
