@@ -156,6 +156,8 @@ Heuristic::Heuristic(const Options &opts)
     : ::Heuristic(opts),
       empty_base_lp_(opts.get<bool>("empty_base_lp")),
       use_landmarks_(opts.get<int>("landmarks")),
+      //Added by del_rel \/
+      use_seq_(opts.get<int>("SEQ")),
       merge_fluents_(opts.get<int>("merge_fluents")),
       merge_goals_(opts.get<bool>("merge_goals")),
       use_ubs_(opts.get<bool>("use_ubs")),
@@ -548,6 +550,10 @@ int Heuristic::get_f(int op, int var, int val){
     return ((nprop_+nopr_)<<1)+(nprop_*op)+indexes_begin_var_[var]+val;
 }
 
+int Heuristic::get_yo(int op_id){
+    return nvars_+op_id;
+}
+
 
 
 void Heuristic::correct_model(const State &state){
@@ -735,6 +741,55 @@ void Heuristic::add_sixth_const(vector<CoinPackedVector*> *osi_rows, vector<doub
 }
 
 
+//from SEQ adding constraints of this kind: Yo>=Uo
+void Heuristic::add_seventh_const(std::vector<CoinPackedVector*> *osi_rows,std::vector<double> &lb,std::vector<double> &ub){
+    for(int op=0;op<npor_;op++){
+        int yo = get_yo(op);
+        int uo = get_uo(op);
+
+        CoinPackedVector *osi_row = new CoinPackedVector(true);
+        osi_row->insert(yo,1);
+        osi_row->insert(uo,-1);
+        nconstraints_++;
+        osi_rows->push_back(osi_row);
+        lb.push_back(0);
+        ub.push_back(osi_solver_->getInfinity);
+    }
+}
+
+//from SEQ adding constraints for all atoms
+void Heuristic::add_eighth_const(std::vector<CoinPackedVector*> *osi_rows,std::vector<double> &lb,std::vector<double> &ub){
+    begin_const_seq_=nconstraints_;
+
+    for(int var=0;var<nvariables_;++var){
+        for(int val=0;val<g_variable_domain[var];++val){
+            CoinPackedVector *osi_row = new CoinPackedVector(true);
+
+            
+
+
+            nconstraints_++;
+            osi_rows->push_back(osi_row);
+            lb.push_back(0);
+            ub.push_back(osi_solver_->getInfinity);
+
+        }        
+    }
+
+    end_const_seq_=nconstrats_;
+
+}
+
+void init_tmp_goal(){
+    tmp_goal_.clear();
+    tmp.resize(nvariables_,-1);
+    for(int i=0;i<g_goal.size();++i){
+        int var = g_goal[i].first;
+        int val = g_goal[i].second;
+        tmp_goal_[var]=val;
+    }
+}
+
 void Heuristic::create_base_lp() {
     osi_solver_ = 0;
     if( lp_solver_ == "clp" ) {
@@ -794,21 +849,26 @@ void Heuristic::create_base_lp() {
     //number
     nprop_ = npropositions_;
     nopr_  = noperators_;
-
+    nvars_with_seq_ = 0;
     //variables in delete relaxation model
     nvars_ = 2*(nopr_+nprop_) + nopr_*nprop_;
 
+    if(0x1 & use_seq_){
+        nvars_with_seq_=nopr_;
+    }
 
     // Variables
     //the first nopr variables refers to U variables in delete relaxation
     //the second nopr variables refers to To operators in delete relaxation
     //next nprop variables refers to R variables in delete relaxation
     //next nprop variables refers to Ta variables in delete relaxation
-    //next nprop * nopr variables refers to Foa variables. These are ordered by operators
+    //next nprop * nopr variables refer to Foa variables. These are ordered by operators
     //                            which means the first operator with every propositions
     //                            are before the next operator with every proposition.
-    vector<double> osi_col_lb(nvars_, 0);
-    vector<double> osi_col_ub(nvars_, osi_solver_->getInfinity());
+    //if use_seq_ is set the next nopr_ variables refer to Yo from SEQ
+    //
+    vector<double> osi_col_lb(nvars_+nvars_with_seq_, 0);
+    vector<double> osi_col_ub(nvars_+nvars_with_seq_, osi_solver_->getInfinity());
     for(int i=0;i<nvars_;++i){
         //upper bounds for U variables
         if(i<nopr_){
@@ -827,8 +887,11 @@ void Heuristic::create_base_lp() {
             osi_col_ub[i]=nopr_;
         }
         //up for F variables
-        else {
+        else if(i<nvars_){
             osi_col_ub[i]=1;
+        }
+        else if(i<nvars_+nvars_with_seq_){
+            //nothing to do here, already set bounds for Yo
         }
     }
 
@@ -836,11 +899,13 @@ void Heuristic::create_base_lp() {
 
     // Objective function.
     //setting cost only for operators. Other kind of variables haven't cost
-    vector<double> osi_obj_fn(nvars_, 0);
-    for( int i = 0; i < nvars_; ++i ) {
-        if(i<nopr_)
+    vector<double> osi_obj_fn(nvars_+nvars_with_seq_, 0);
+    for( int i = 0; i < nvars_+nvars_with_seq_; ++i ) {
+        if(i<nopr_ & !use_seq_)
             osi_obj_fn[i] = operators_[i]->get_cost();
-        else osi_obj_fn[i] = 0;
+        else if(i<nvars_) osi_obj_fn[i] = 0;
+        //Added SEQ+del
+        else osi_obj_fn[i] = operators_[i-nvars_]->get_cost();
     }
 
 
@@ -848,7 +913,7 @@ void Heuristic::create_base_lp() {
 
     // Constraints.
     CoinPackedMatrix *osi_matrix = new CoinPackedMatrix(false, 0, 0);
-    osi_matrix->setDimensions(0, nvars_);
+    osi_matrix->setDimensions(0, nvars_+nvars_with_seq_);
     vector<CoinPackedVector*> osi_rows;
 
     nconstraints_ = 0;
@@ -909,6 +974,7 @@ void Heuristic::create_base_lp() {
     }
 #else
 
+
     osi_row_lb.clear(); osi_row_ub.clear();
 
     add_first_const(&osi_col_lb);
@@ -922,6 +988,15 @@ void Heuristic::create_base_lp() {
     add_fifth_const(&osi_rows,osi_row_lb,osi_row_ub);
 
     add_sixth_const(&osi_rows,osi_row_lb,osi_row_ub);
+
+    if(0x1 & use_seq_){
+        init_tmp_goal();
+        //adding constraints from SEQ
+        add_seventh_const(&osi_rows,osi_row_lb,osi_row_ub);
+        add_eighth_const(&osi_rows,osi_row_lb,osi_row_ub);
+
+        //tmp_goal_.clear();
+    }
 
 
 
@@ -1989,6 +2064,7 @@ const vector<set<int> >* Operator::propositions_mutex_with_precondition_;
 const vector<set<int> >* Operator::propositions_mutex_with_postcondition_;
 
 ScalarEvaluator *_parse(OptionParser &parser) {
+    //Added by flow
     parser.add_option<bool>("empty_base_lp", false, string("use an empty base lp"));
     parser.add_option<int>("landmarks", 0, "landmark factory: 0=no factory (default), 1=lmgraph-factory, 2=lmcut-factory");
     parser.add_option<LandmarkGraph *>("lm_graph", 0, "only used (and required) when landmarks=1");
@@ -1998,6 +2074,10 @@ ScalarEvaluator *_parse(OptionParser &parser) {
     parser.add_option<string>("lp_solver", string("clp"), string("clp (default), grb, cplex"));
     parser.add_option<float>("epsilon", EPSILON, string("epsilon for marking operator active (default=0.0001)"));
     parser.add_option<bool>("debug", false, string("print debug information (default false)"));
+
+     //Added by del_relaxation
+    parser.add_option<int>("SEQ", 0, "adding SEQ to del_rel: 0=simple del_rel (default), 1=SEQ+del_rel");
+
 
     Heuristic::add_options_to_parser(parser);
     Options opts = parser.parse();

@@ -363,6 +363,10 @@ class Heuristic : public ::Heuristic {
     int merge_fluents_;
     bool merge_goals_;
     bool use_ubs_;
+
+    //Added in delete_rel
+    int use_seq_;
+
     std::string lp_solver_;    
     float epsilon_;
     bool debug_;
@@ -377,9 +381,13 @@ class Heuristic : public ::Heuristic {
     int nvariables_;                            // number variables
     int npropositions_;                         // number propositions
     int noperators_;                            // number operators
-    int nvars_;
+    int nvars_;                                 // number of variables in the base delete_relaxation
     int nopr_;
     int nprop_;
+    int nvars_with_seq_;                        //equal to nopr_ if we use SEQ
+    int begin_const_seq_;                       //index in constraints where SEQ constraints begin without 
+                                                //counting constraints like Yo>=Uo
+    int end_const_seq_;                         //index in constraints where SEQ constrains end
 
     std::vector<Variable*> variables_;          // all variables
     std::vector<std::vector<PrimitiveProposition*> > primitive_propositions_; // all primitive propositions indexed by (var,value)
@@ -405,6 +413,7 @@ class Heuristic : public ::Heuristic {
     std::vector<int> indexes_begin_op_; //index in array start at... by operator
 
     vector<double> osi_row_lb, osi_row_ub;
+    std:vector<int> tmp_goal_;
 
 
     int nconstraints_;
@@ -476,6 +485,7 @@ class Heuristic : public ::Heuristic {
     int get_f(int,int,int);
     int get_r(int,int);
     int get_ta(int,int);
+    int get_yo(int);
 
     //delete_rel functions
     void add_first_const(std::vector<double> *);
@@ -484,6 +494,11 @@ class Heuristic : public ::Heuristic {
     void add_fourth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
     void add_fifth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
     void add_sixth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
+
+    //Added by seq+del_rel
+    void add_seventh_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
+    void add_eighth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
+    void init_tmp_goal();
 
     void correct_model(const State &);
 
