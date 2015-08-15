@@ -163,7 +163,7 @@ Heuristic::Heuristic(const Options &opts)
       epsilon_(opts.get<float>("epsilon")),
       debug_(opts.get<bool>("debug")),
       //Added by del_rel \/
-      use_seq_(opts.get<int>("SEQ")) {
+      use_seq_(opts.get<int>("seq")) {
     merge_done_at_root_ = false;
     safe_to_max_with_hmax_ = false; // TURN OFF MAXING W/ HMAX
     hmax_heuristic_ = 0;
