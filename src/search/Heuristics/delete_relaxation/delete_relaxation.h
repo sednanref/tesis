@@ -413,7 +413,7 @@ class Heuristic : public ::Heuristic {
     std::vector<int> indexes_begin_op_; //index in array start at... by operator
 
     vector<double> osi_row_lb, osi_row_ub;
-    std:vector<int> tmp_goal_;
+    std::vector<int> tmp_goal_;
 
 
     int nconstraints_;
