@@ -156,14 +156,14 @@ Heuristic::Heuristic(const Options &opts)
     : ::Heuristic(opts),
       empty_base_lp_(opts.get<bool>("empty_base_lp")),
       use_landmarks_(opts.get<int>("landmarks")),
-      //Added by del_rel \/
-      use_seq_(opts.get<int>("SEQ")),
       merge_fluents_(opts.get<int>("merge_fluents")),
       merge_goals_(opts.get<bool>("merge_goals")),
       use_ubs_(opts.get<bool>("use_ubs")),
       lp_solver_(opts.get<string>("lp_solver")),
       epsilon_(opts.get<float>("epsilon")),
-      debug_(opts.get<bool>("debug")) {
+      debug_(opts.get<bool>("debug")),
+      //Added by del_rel \/
+      use_seq_(opts.get<int>("SEQ")) {
     merge_done_at_root_ = false;
     safe_to_max_with_hmax_ = false; // TURN OFF MAXING W/ HMAX
     hmax_heuristic_ = 0;
@@ -2095,7 +2095,7 @@ ScalarEvaluator *_parse(OptionParser &parser) {
     parser.add_option<bool>("debug", false, string("print debug information (default false)"));
 
      //Added by del_relaxation
-    parser.add_option<int>("SEQ", 0, "adding SEQ to del_rel: 0=simple del_rel (default), 1=SEQ+del_rel");
+    parser.add_option<int>("SEQ", 0, string("adding SEQ to del_rel: 0=simple del_rel (default), 1=SEQ+del_rel"));
 
 
     Heuristic::add_options_to_parser(parser);
