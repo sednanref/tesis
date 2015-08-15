@@ -363,13 +363,12 @@ class Heuristic : public ::Heuristic {
     int merge_fluents_;
     bool merge_goals_;
     bool use_ubs_;
-
-    //Added in delete_rel
-    int use_seq_;
-
     std::string lp_solver_;    
     float epsilon_;
     bool debug_;
+    
+    //Added in delete_rel
+    int use_seq_;
 
     bool merge_done_at_root_;
     bool safe_to_max_with_hmax_;
