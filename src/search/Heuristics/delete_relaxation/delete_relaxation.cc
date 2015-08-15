@@ -749,7 +749,7 @@ void Heuristic::add_sixth_const(vector<CoinPackedVector*> *osi_rows, vector<doub
 
 //from SEQ adding constraints of this kind: Yo>=Uo
 void Heuristic::add_seventh_const(std::vector<CoinPackedVector*> *osi_rows,std::vector<double> &lb,std::vector<double> &ub){
-    for(int op=0;op<npor_;op++){
+    for(int op=0;op<nopr_;op++){
         int yo = get_yo(op);
         int uo = get_uo(op);
 
@@ -759,7 +759,7 @@ void Heuristic::add_seventh_const(std::vector<CoinPackedVector*> *osi_rows,std::
         nconstraints_++;
         osi_rows->push_back(osi_row);
         lb.push_back(0);
-        ub.push_back(osi_solver_->getInfinity);
+        ub.push_back(osi_solver_->getInfinity());
     }
 }
 
@@ -790,18 +790,18 @@ void Heuristic::add_eighth_const(std::vector<CoinPackedVector*> *osi_rows,std::v
             nconstraints_++;
             osi_rows->push_back(osi_row);
             lb.push_back(0);
-            ub.push_back(osi_solver_->getInfinity);
+            ub.push_back(osi_solver_->getInfinity());
 
         }        
     }
 
-    end_const_seq_=nconstrats_;
+    end_const_seq_=nconstraints_;
 
 }
 
-void init_tmp_goal(){
+void Heuristic::init_tmp_goal(){
     tmp_goal_.clear();
-    tmp.resize(nvariables_,-1);
+    tmp_goal_.resize(nvariables_,-1);
     for(int i=0;i<g_goal.size();++i){
         int var = g_goal[i].first;
         int val = g_goal[i].second;
@@ -920,7 +920,7 @@ void Heuristic::create_base_lp() {
     //setting cost only for operators. Other kind of variables haven't cost
     vector<double> osi_obj_fn(nvars_+nvars_with_seq_, 0);
     for( int i = 0; i < nvars_+nvars_with_seq_; ++i ) {
-        if(i<nopr_ & !use_seq_)
+        if(i<nopr_ && !use_seq_)
             osi_obj_fn[i] = operators_[i]->get_cost();
         else if(i<nvars_) osi_obj_fn[i] = 0;
         //Added SEQ+del
