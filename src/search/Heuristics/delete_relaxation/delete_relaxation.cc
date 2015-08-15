@@ -2095,7 +2095,7 @@ ScalarEvaluator *_parse(OptionParser &parser) {
     parser.add_option<bool>("debug", false, string("print debug information (default false)"));
 
      //Added by del_relaxation
-    parser.add_option<int>("SEQ", 0, string("adding SEQ to del_rel: 0=simple del_rel (default), 1=SEQ+del_rel"));
+    parser.add_option<int>("seq", 0, string("adding SEQ to del_rel: 0=simple del_rel (default), 1=SEQ+del_rel"));
 
 
     Heuristic::add_options_to_parser(parser);
