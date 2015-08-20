@@ -663,7 +663,7 @@ void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<dou
         for(int j =0 ;prevail.size();++j){
             int var = prevail[j].var;
             int val = prevail[j].prev;
-            cout << "/------> #############  Si hay prevails" << endl;
+            //cout << "/------> #############  Si hay prevails" << endl;
             int id_r = get_r(var,val);
             int id_u = get_uo(id_op);
 
@@ -717,7 +717,7 @@ void Heuristic::add_fifth_const(vector<CoinPackedVector*> *osi_rows, vector<doub
         for(int j =0 ;prevail.size();++j){
             int var = prevail[j].var;
             int val = prevail[j].prev;
-            cout << "/------> #############  Si hay prevails" << endl;
+            //cout << "/------> #############  Si hay prevails" << endl;
             int id_to = get_to(id_op);
             int id_ta = get_ta(var,val);
 
