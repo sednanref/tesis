@@ -658,6 +658,25 @@ void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<dou
             continue;
 
         const vector<PrePost> &pre_post = ptr->base_op_.get_pre_post();
+        const vector<Prevail> &prevail = ptr->base_op_.get_prevail();
+
+        for(int j =0 ;prevail.size();++j){
+            int var = prevail[j].var;
+            int val = prevail[j].prev;
+            cout << "/------> #############  Si hay prevails" << endl;
+            int id_r = get_r(var,val);
+            int id_u = get_uo(id_op);
+
+
+            CoinPackedVector *osi_row = new CoinPackedVector(true);
+            osi_row->insert(id_r,1);
+            osi_row->insert(id_u,-1);
+            osi_rows->push_back(osi_row);
+            nconstraints_++;
+            lb.push_back(0);
+            ub.push_back(osi_solver_->getInfinity());
+        }
+
 
         for(int j =0; j< pre_post.size();++j){
             int var = pre_post[j].var;
@@ -691,7 +710,27 @@ void Heuristic::add_fifth_const(vector<CoinPackedVector*> *osi_rows, vector<doub
         if(!ptr) 
             continue;
 
+
         const vector<PrePost> &pre_post = ptr->base_op_.get_pre_post();
+        const vector<Prevail> &prevail = ptr->base_op_.get_prevail();
+
+        for(int j =0 ;prevail.size();++j){
+            int var = prevail[j].var;
+            int val = prevail[j].prev;
+            cout << "/------> #############  Si hay prevails" << endl;
+            int id_to = get_to(id_op);
+            int id_ta = get_ta(var,val);
+
+            CoinPackedVector *osi_row = new CoinPackedVector(true);
+            osi_row->insert(id_to,1);
+            osi_row->insert(id_ta,-1);
+            osi_rows->push_back(osi_row);
+            nconstraints_++;
+            lb.push_back(0);
+            ub.push_back(osi_solver_->getInfinity());
+        }
+
+
         for(int j =0; j< pre_post.size();++j){
             int var = pre_post[j].var;
             int val = pre_post[j].pre;
