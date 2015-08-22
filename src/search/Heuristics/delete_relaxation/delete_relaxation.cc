@@ -658,13 +658,16 @@ void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<dou
             continue;
 
         const vector<PrePost> &pre_post = ptr->base_op_.get_pre_post();
-        /*const vector<Prevail> &prevail = ptr->base_op_.get_prevail();
+        const vector<Prevail> &prevail = ptr->base_op_.get_prevail();
 
         for(int j =0 ;prevail.size();++j){
             int var = prevail[j].var;
             int val = prevail[j].prev;
 
-            if(val<0) continue;
+            if(val <0 || val >= g_variable_domain[var]) {
+                cout <<"aqui explota" << endl;
+            }
+            /*if(val<0) continue;
             //cout << "/------> #############  Si hay prevails" << endl;
             int id_r = get_r(var,val);
             int id_u = get_uo(id_op);
@@ -676,9 +679,9 @@ void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<dou
             osi_rows->push_back(osi_row);
             nconstraints_++;
             lb.push_back(0);
-            ub.push_back(osi_solver_->getInfinity());
+            ub.push_back(osi_solver_->getInfinity());*/
         }
-*/
+
 
         for(int j =0; j< pre_post.size();++j){
             int var = pre_post[j].var;
@@ -793,8 +796,10 @@ void Heuristic::add_sixth_const(vector<CoinPackedVector*> *osi_rows, vector<doub
 //from SEQ adding constraints of this kind: Yo>=Uo
 void Heuristic::add_seventh_const(std::vector<CoinPackedVector*> *osi_rows,std::vector<double> &lb,std::vector<double> &ub){
     for(int op=0;op<nopr_;op++){
-        int yo = get_yo(op);
-        int uo = get_uo(op);
+        int id_op = operators_[op]->id_;
+
+        int yo = get_yo(id_op);
+        int uo = get_uo(id_op);
 
         CoinPackedVector *osi_row = new CoinPackedVector(true);
         osi_row->insert(yo,1);
