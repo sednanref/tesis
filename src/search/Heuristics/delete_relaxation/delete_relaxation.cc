@@ -435,7 +435,7 @@ void Heuristic::create_primitive_operator(const ::Operator &base_op) {
         PrimitiveProposition *p = primitive_propositions_[var][prev];
         prevails.insert(p);
         //cout << "hola: var=" << var << ", prevail=" << p->id_ << endl;
-        dtgs_[var]->create_transition(p, pop, p);
+        //dtgs_[var]->create_transition(p, pop, p);
     }
 
     // Pre-post conditions
@@ -456,7 +456,7 @@ void Heuristic::create_primitive_operator(const ::Operator &base_op) {
             consumes.insert(static_cast<PrimitiveProposition*>(pre_prop));
         }
         //cout << "hola: var=" << var << ", pre=" << pre << ", post=" << post << endl;
-        dtgs_[var]->create_transition(pre_prop, pop, post_prop);
+        //dtgs_[var]->create_transition(pre_prop, pop, post_prop);
 
         if( pre == -1 ) {
             //if( variables_[var]->safe_ ) cout << "Variable " << *variables_[var] << " is unsafe" << endl;
