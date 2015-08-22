@@ -663,6 +663,9 @@ void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<dou
         for(int j =0 ;prevail.size();++j){
             int var = prevail[j].var;
             int val = prevail[j].prev;
+            if(var<0 || var >= nvariables_){
+                cout <<"es la puta variable " << var << " " << nvariables_<< endl;
+            }
 
             if(val <0 || val >= g_variable_domain[var]) {
                 cout <<"aqui explota" << endl;
