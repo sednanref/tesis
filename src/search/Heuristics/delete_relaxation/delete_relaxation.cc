@@ -658,7 +658,7 @@ void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<dou
             continue;
 
         const vector<PrePost> &pre_post = ptr->base_op_.get_pre_post();
-        const vector<Prevail> &prevail = ptr->base_op_.get_prevail();
+        /*const vector<Prevail> &prevail = ptr->base_op_.get_prevail();
 
         for(int j =0 ;prevail.size();++j){
             int var = prevail[j].var;
@@ -678,7 +678,7 @@ void Heuristic::add_fourth_const(vector<CoinPackedVector*> *osi_rows, vector<dou
             lb.push_back(0);
             ub.push_back(osi_solver_->getInfinity());
         }
-
+*/
 
         for(int j =0; j< pre_post.size();++j){
             int var = pre_post[j].var;
@@ -714,7 +714,7 @@ void Heuristic::add_fifth_const(vector<CoinPackedVector*> *osi_rows, vector<doub
 
 
         const vector<PrePost> &pre_post = ptr->base_op_.get_pre_post();
-        const vector<Prevail> &prevail = ptr->base_op_.get_prevail();
+        /*const vector<Prevail> &prevail = ptr->base_op_.get_prevail();
 
         for(int j =0 ;prevail.size();++j){
             int var = prevail[j].var;
@@ -733,7 +733,7 @@ void Heuristic::add_fifth_const(vector<CoinPackedVector*> *osi_rows, vector<doub
             lb.push_back(0);
             ub.push_back(osi_solver_->getInfinity());
         }
-
+*/
 
         for(int j =0; j< pre_post.size();++j){
             int var = pre_post[j].var;
