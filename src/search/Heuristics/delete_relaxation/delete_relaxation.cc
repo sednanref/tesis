@@ -185,8 +185,8 @@ Heuristic::~Heuristic() {
 
 // initialization
 void Heuristic::initialize() {
-    cout << "Initializing flow heuristic using:" 
-         << "landmarks=" << use_landmarks_
+    cout << "Initializing delete_relaxation heuristic using:" 
+         << "seq=" << use_seq_
          << ", merge_fluents=" << merge_fluents_
          << ", LP-kit=osi:" << lp_solver_ << endl;
 
