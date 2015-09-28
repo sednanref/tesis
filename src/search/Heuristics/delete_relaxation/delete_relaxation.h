@@ -370,6 +370,9 @@ class Heuristic : public ::Heuristic {
     //Added in delete_rel
     int use_seq_;
 
+    //time relaxation in DR
+    int use_tr_;
+
     bool merge_done_at_root_;
     bool safe_to_max_with_hmax_;
     HSPMaxHeuristic *hmax_heuristic_;
@@ -383,7 +386,7 @@ class Heuristic : public ::Heuristic {
     int nvars_;                                 // number of variables in the base delete_relaxation
     int nopr_;
     int nprop_;
-    int nvars_with_seq_;                        //equal to nopr_ if we use SEQ
+    int nvars_without_seq_;                        //equal to nopr_ if we use SEQ
     int begin_const_seq_;                       //index in constraints where SEQ constraints begin without 
                                                 //counting constraints like Yo>=Uo
     int end_const_seq_;                         //index in constraints where SEQ constrains end
@@ -404,6 +407,7 @@ class Heuristic : public ::Heuristic {
     std::map<std::pair<int, int>, int> merge_variables_; // map of merged variables
     std::map<std::pair<int, int>, std::vector<int> > operator_copies_; // map of operator copies
     std::map<std::pair<int, int>, int> row_index_for_operator_copies_; // row index of constraint for operator copies
+    std::map<std::pair<int,std::pair<int,int> > > index_f_;
 
     std::vector<std::set<int> > propositions_mutex_with_precondition_;
     std::vector<std::set<int> > propositions_mutex_with_postcondition_;
@@ -478,6 +482,14 @@ class Heuristic : public ::Heuristic {
     int compute_heuristic(const State &state);
 
 
+    //indexes where variables begin and end
+    int begin_uo_,end_uo_;
+    int begin_to_,end_to_;
+    int begin_ta_,end_ta_;
+    int begin_r_,end_r_;
+    int begin_yo_,end_yo_;
+    int begin_f_,end_f_;
+
     //get variables' indexes
     int get_uo(int);
     int get_to(int);
@@ -493,6 +505,8 @@ class Heuristic : public ::Heuristic {
     void add_fourth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
     void add_fifth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
     void add_sixth_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
+
+    void add_fs();
 
     //Added by seq+del_rel
     void add_seventh_const(std::vector<CoinPackedVector*> *,std::vector<double> &,std::vector<double> &);
