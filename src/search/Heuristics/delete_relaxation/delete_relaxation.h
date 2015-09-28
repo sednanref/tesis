@@ -407,7 +407,7 @@ class Heuristic : public ::Heuristic {
     std::map<std::pair<int, int>, int> merge_variables_; // map of merged variables
     std::map<std::pair<int, int>, std::vector<int> > operator_copies_; // map of operator copies
     std::map<std::pair<int, int>, int> row_index_for_operator_copies_; // row index of constraint for operator copies
-    std::map<std::pair<int,std::pair<int,int> > > index_f_;
+    std::map<std::pair<int,std::pair<int,int> >, int > index_f_;
 
     std::vector<std::set<int> > propositions_mutex_with_precondition_;
     std::vector<std::set<int> > propositions_mutex_with_postcondition_;
