@@ -548,7 +548,7 @@ int Heuristic::get_ta(int var, int val){
 }
 
 int Heuristic::get_f(int op, int var, int val){
-    return index_f[make_pair(op,make_pair(var,val))];
+    return index_f_[make_pair(op,make_pair(var,val))];
 }
 
 int Heuristic::get_yo(int op_id){
@@ -1091,7 +1091,7 @@ void Heuristic::create_base_lp() {
 
     add_fourth_const(&osi_rows,osi_row_lb,osi_row_ub);
 
-    if((use_tr_&0x1)==0){}
+    if((use_tr_&0x1)==0){
         add_fifth_const(&osi_rows,osi_row_lb,osi_row_ub);
 
         add_sixth_const(&osi_rows,osi_row_lb,osi_row_ub);
