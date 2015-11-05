@@ -156,8 +156,8 @@ Heuristic::Heuristic(const Options &opts)
     : ::Heuristic(opts),
       empty_base_lp_(opts.get<bool>("empty_base_lp")),
       use_landmarks_(opts.get<int>("landmarks")),
-      merge_fluents_(opts.get<int>("merge_fluents")),
-      merge_goals_(opts.get<bool>("merge_goals")),
+      //merge_fluents_(opts.get<int>("merge_fluents")), to_delete
+      //merge_goals_(opts.get<bool>("merge_goals")),    to_delete
       use_ubs_(opts.get<bool>("use_ubs")),
       lp_solver_(opts.get<string>("lp_solver")),
       epsilon_(opts.get<float>("epsilon")),
@@ -165,7 +165,7 @@ Heuristic::Heuristic(const Options &opts)
       //Added by del_rel \/
       use_seq_(opts.get<int>("seq")),
       use_tr_(opts.get<int>("tr")) {
-    merge_done_at_root_ = false;
+    //merge_done_at_root_ = false; to_delete
     safe_to_max_with_hmax_ = false; // TURN OFF MAXING W/ HMAX
     hmax_heuristic_ = 0;
 
@@ -188,7 +188,8 @@ Heuristic::~Heuristic() {
 void Heuristic::initialize() {
     cout << "Initializing delete_relaxation heuristic using:" 
          << "seq=" << use_seq_
-         << ", merge_fluents=" << merge_fluents_
+         << "tr=" << use_tr_
+         << "landmarks=" << use_landmarks_
          << ", LP-kit=osi:" << lp_solver_ << endl;
 
     // Framework does not support axioms or conditional effects
@@ -196,7 +197,7 @@ void Heuristic::initialize() {
 
     // create base model and LP
     create_primitive_variables_and_propositions();
-    //create_primitive_dtgs();
+    //create_primitive_dtgs(); to_delete (?)
     create_primitive_operators();
     //preprocess();
     create_base_lp();
@@ -265,7 +266,7 @@ void Heuristic::create_primitive_variables_and_propositions() {
     // set static references in Proposition and Operator
     Proposition::nprimitive_variables_ = nprimitive_variables_;
     Proposition::variables_ = &variables_;
-    Proposition::merge_variables_ = &merge_variables_;
+    //Proposition::merge_variables_ = &merge_variables_;
     Operator::propositions_mutex_with_precondition_ = &propositions_mutex_with_precondition_;
     Operator::propositions_mutex_with_postcondition_ = &propositions_mutex_with_postcondition_;
 
@@ -308,13 +309,13 @@ void Heuristic::create_primitive_variables_and_propositions() {
     }
     cout << "Base model: " << nprimitive_propositions_ << " primitive propositions created" << endl;
 }
-
+/*
 void Heuristic::create_primitive_dtgs() {
     for( int i = 0; i < nvariables_; ++i )
         dtgs_.push_back(new DTG(*variables_[i]));
     cout << "Base model: " << nvariables_ << " primitive DTGs created" << endl;
 }
-
+*/  
 void Heuristic::create_primitive_operators() {
     // Create primitive operators
     noperators_ = 0;
@@ -323,10 +324,10 @@ void Heuristic::create_primitive_operators() {
     for( int i = 0; i < g_operators.size(); ++i ) {
         create_primitive_operator(g_operators[i]);
 #if 1
-        if( merge_goals_ && operators_[i]->produces_.size() == 2 ) {
+        /*if( merge_goals_ && operators_[i]->produces_.size() == 2 ) {
             //cout << "Operator " << *operators_[i] << " produces exactly two fluents" << endl;
             xxx_operators_.push_back(i);
-        }
+        } to_delete (?)*/ 
 #endif
     }
     checked_operators_ = vector<bool>(nprimitive_operators_, false);
@@ -1152,8 +1153,8 @@ bool Heuristic::refine_model(const State &state) {
         set_row_bounds(state);
         bool infeasible = solve_lp(state, true);
         if( infeasible ) return true;
-        if( merge_fluents_ == 0 ) return false;
-        if( (merge_fluents_ == 1) && merge_done_at_root_ ) return false;
+        /*if( merge_fluents_ == 0 ) return false;
+        if( (merge_fluents_ == 1) && merge_done_at_root_ ) return false; to_delete (?)*/
 
         // compute primitive operators that must be fixed
         vector<int> operators_to_fix;
@@ -1194,7 +1195,7 @@ bool Heuristic::refine_model(const State &state) {
                     if( second->id_ >= nprimitive_propositions_ ) continue;
                     if( debug_ ) cout << "  Merge with " << *second << "..." << endl;
                     //if( !merge_propositions(first, second) ) goto fin;
-                    merge_propositions_using_dtgs(first, second);
+                    //merge_propositions_using_dtgs(first, second);
                 }
 #if 0
                 for( int k = 0; k < op.produces_.size(); ++k ) {
@@ -1211,7 +1212,7 @@ bool Heuristic::refine_model(const State &state) {
     }
 
     // do merge of goals
-    if( !merge_done_at_root_ && merge_goals_ ) {
+    /*if( !merge_done_at_root_ && merge_goals_ ) {
         cout << "Merge goals" << endl;
 #if 1
         for( int i = 0; i < xxx_operators_.size(); ++i ) {
@@ -1222,7 +1223,9 @@ bool Heuristic::refine_model(const State &state) {
             merge_propositions(first, second);
         }
 #endif
-#if 1
+
+
+#if 1 
         for( int i = 0; i < g_goal.size(); ++i ) {
             int var1 = g_goal[i].first;
             int val1 = g_goal[i].second;
@@ -1251,9 +1254,11 @@ bool Heuristic::refine_model(const State &state) {
         //osi_solver_->writeLp("state_equation_updated");
     }
     merge_done_at_root_ = true;
+    to_delete(?)*/
     return false;
 }
 
+/*
 bool Heuristic::merge_propositions(Proposition *first, Proposition *second) {
     if( first == second ) {
         cout << "ERROR: can't merge a proposition with itself" << endl;
@@ -1474,6 +1479,7 @@ bool Heuristic::merge_propositions(Proposition *first, Proposition *second) {
     return true;
     //return noperators_ < 10 * nprimitive_operators_;
 }
+to_delete(?)*/
 
 pair<const UndefinedProposition*, bool> Heuristic::fetch_undefined(int var) {
     pair<map<int, int>::iterator, bool> p = undefined_propositions_.insert(make_pair(var, npropositions_));
@@ -1487,6 +1493,7 @@ pair<const UndefinedProposition*, bool> Heuristic::fetch_undefined(int var) {
     }
 }
 
+/*
 pair<const MergeVariable*, bool> Heuristic::fetch_merge(const Variable *first, const Variable *second) {
     assert((first != 0) && (second != 0));
     pair<map<pair<int, int>, int>::iterator, bool> p =
@@ -1516,7 +1523,7 @@ pair<const MergeProposition*, bool> Heuristic::fetch_merge(const Proposition *fi
         return make_pair(static_cast<MergeProposition*>(propositions_[p.first->second]), false);
     }
 }
-
+to_delete (?)*/
 int Heuristic::fetch_lpvar(const Operator *op) {
     if( op->id_ == -1 ) {
         assert(dynamic_cast<const OperatorCopy*>(op) != 0);
@@ -1526,264 +1533,6 @@ int Heuristic::fetch_lpvar(const Operator *op) {
         osi_solver_->addCol(osi_col, 0, osi_solver_->getInfinity(), op->get_cost());
     }
     return op->id_;
-}
-
-bool Heuristic::merge_propositions_using_dtgs(const Proposition *first, const Proposition *second) {
-    if( first == second ) {
-        cout << "ERROR: can't merge a proposition with itself" << endl;
-        exit(-1);
-    }
-    if( first->id_ >= nprimitive_propositions_ || second->id_ >= nprimitive_propositions_ ) {
-        cout << "ERROR: only merge of primitive propositions supported" << endl;
-        exit(-1);
-    }
-
-    // set canonical order on merged propositions
-    if( first->id_ > second->id_ ) {
-        const Proposition *tmp = first;
-        first = second;
-        second = tmp;
-    }
-
-    // if propositions already merged, do nothing
-    pair<const MergeProposition*, bool> p = fetch_merge(first, second);
-    if( p.first->processed_ ) return true;
-    const MergeProposition *merge = p.first;
-    merge->processed_ = true;
-    //cout << "merge=" << *merge << endl;
-    if( debug_ ) cout << "merge: first=" << *first << ", second=" << *second << ", var=" << merge->var_ << endl;
-
-    // obtain DTGs
-    assert(merge->var_ < dtgs_.size());
-    DTG &dtg = *dtgs_[merge->var_];
-    DTG &first_dtg = *dtgs_[first->var_];
-    DTG &second_dtg = *dtgs_[second->var_];
-    //cout << first_dtg;
-
-    // fetch states in DTGs
-    int first_state = first_dtg.fetch_state(first);
-    int second_state = second_dtg.fetch_state(second);
-
-    // create 'in' transitions (producers) in DTG
-    vector<bool> processed(noperators_, false);
-    for( int i = 0; i < first_dtg.in_[first_state].size(); ++i ) {
-        //cout << i << "/" << first_dtg.in_[first_state].size() << endl;
-        int first_tr_id = first_dtg.in_[first_state][i];
-        pair<int, pair<int, int> > first_tr = first_dtg.transitions_[first_tr_id];
-        const Proposition *p = first_dtg.states_[first_tr.second.first];
-        const Operator *op = first_dtg.labels_[first_tr.first];
-        //cout << "first-tr=" << first_tr_id << ", first-in=" << *op << ", p=" << *p << ", post=" << *first_dtg.states_[first_tr.second.second] << endl;
-        //cout << "2-sz=" << second_dtg.in_[second_state].size() << endl;
-        for( int j = 0; j < second_dtg.in_[second_state].size(); ++j ) {
-            //cout << j << "/" << second_dtg.in_[second_state].size() << endl;
-            int second_tr_id = second_dtg.in_[second_state][j];
-            pair<int, pair<int, int> > second_tr = second_dtg.transitions_[second_tr_id];
-            if( second_dtg.labels_[second_tr.first] == op ) {
-                assert(!processed[op->id_]);
-                processed[op->id_] = true;
-                // create transition from pre=(first_tr.second.first, second_tr.second.first) into post=(first, second) with op
-                // verify that pre isn't mutex with precondition. Do not generate prevail transitions
-                const Proposition *q = second_dtg.states_[second_tr.second.first];
-                const Proposition *pre = fetch_merge(p, q).first;
-                if( (pre != merge) && !pre->is_mutex_with_precondition_of(op) ) {
-                    //cout << "case1: pre=" << *pre << ", post=" << *merge << ", op=" << *op << endl;
-                    dtg.create_transition(pre, op, merge);
-                }
-            }
-        }
-
-        if( !second_dtg.is_label(op) ) {
-            assert(!processed[op->id_]);
-            processed[op->id_] = true;
-            // create transition from pre=(first_tr.second.first, second) into post=(first, second) with op
-            // verify that second isn't mutex with precondition and postcondition. Don't generate prevail transitions
-            const Proposition *pre = fetch_merge(p, second).first;
-            if( (pre != merge) && !second->is_mutex_with_precondition_of(op) && !second->is_mutex_with_postcondition_of(op) ) {
-                //cout << "case2: pre=" << *pre << ", post=" << *merge << ", op=" << *op << endl;
-                if( dtg.create_transition(pre, dtg.fetch_copy(op, pre, merge), merge) ) {
-                    dtg.invalidate_link_constraint(op, osi_solver_);
-                }
-            }
-        }
-    }
-    //cout << 3 << endl;
-
-    for( int i = 0; i < second_dtg.in_[second_state].size(); ++i ) {
-        int second_tr_id = second_dtg.in_[second_state][i];
-        pair<int, pair<int, int> > second_tr = second_dtg.transitions_[second_tr_id];
-        const Operator *op = second_dtg.labels_[second_tr.first];
-        if( !first_dtg.is_label(op) ) {
-            assert(!processed[op->id_]);
-            // create transition from pre=(first, second_tr.second.first) into post=(first, second) with op
-            // verify that first isn't mutex with precondition and postcondition. Don't generate prevail transitions
-            const Proposition *q = second_dtg.states_[second_tr.second.first];
-            const Proposition *pre = fetch_merge(first, q).first;
-            if( (pre != merge) && !first->is_mutex_with_precondition_of(op) && !first->is_mutex_with_postcondition_of(op) ) {
-                //cout << "case3: pre=" << *pre << ", post=" << *merge << ", op=" << *op << endl;
-                if( dtg.create_transition(pre, dtg.fetch_copy(op, pre, merge), merge) ) {
-                    dtg.invalidate_link_constraint(op, osi_solver_);
-                }
-            }
-        }
-    }
-    //cout << 4 << endl;
-
-    // create 'out' transitions (consumers) in DTG
-    processed = vector<bool>(noperators_, false);
-    for( int i = 0; i < first_dtg.out_[first_state].size(); ++i ) {
-        int first_tr_id = first_dtg.out_[first_state][i];
-        pair<int, pair<int, int> > first_tr = first_dtg.transitions_[first_tr_id];
-        const Proposition *p = first_dtg.states_[first_tr.second.second];
-        const Operator *op = first_dtg.labels_[first_tr.first];
-        for( int j = 0; j < second_dtg.out_[second_state].size(); ++j ) {
-            int second_tr_id = second_dtg.out_[second_state][j];
-            pair<int, pair<int, int> > second_tr = second_dtg.transitions_[second_tr_id];
-            if( second_dtg.labels_[second_tr.first] == first_dtg.labels_[first_tr.first] ) {
-                assert(!processed[op->id_]);
-                processed[op->id_] = true;
-                // create transition from pre=(first, second) into post=(first_tr.second.second, second_tr.second.second) with op
-                // verify that merge isn't mutex with precondition. Don't generate prevail transitions
-                const Proposition *q = second_dtg.states_[second_tr.second.second];
-                const Proposition *post = fetch_merge(p, q).first;
-                if( (merge != post) && !merge->is_mutex_with_precondition_of(op) ) {
-                    //cout << "case4: pre=" << *merge << ", post=" << *post << ", op=" << *op << endl;
-                    dtg.create_transition(merge, op, post);
-                }
-            }
-        }
-
-        if( !second_dtg.is_label(op) ) {
-            assert(!processed[op->id_]);
-            processed[op->id_] = true;
-            // create transition from pre=(first, second) into post=(first_tr.second.second, second) with op
-            // verify that second isn't mutex with precondition and postcondition. Don't generate prevail transitions
-            const Proposition *post = fetch_merge(p, second).first;
-            //cout << "case5: pre=" << *merge << ", post=" << *post << ", op=" << *op << endl;
-            if( (merge != post) && !second->is_mutex_with_precondition_of(op) && !second->is_mutex_with_postcondition_of(op) ) {
-                if( dtg.create_transition(merge, dtg.fetch_copy(op, merge, post), post) ) {
-                    dtg.invalidate_link_constraint(op, osi_solver_);
-                }
-            }
-        }
-    }
-    //cout << 5 << endl;
-
-    for( int i = 0; i < second_dtg.out_[second_state].size(); ++i ) {
-        int second_tr_id = second_dtg.out_[second_state][i];
-        pair<int, pair<int, int> > second_tr = second_dtg.transitions_[second_tr_id];
-        const Operator *op = second_dtg.labels_[second_tr.first];
-        if( !first_dtg.is_label(op) ) {
-            assert(!processed[op->id_]);
-            // create transition from pre=(first, second) into post=(first, second_tr.second.second) with op
-            // verify that first isn't mutex with precondition and postcondition. Don't generate prevail transitions
-            const Proposition *q = second_dtg.states_[second_tr.second.second];
-            const Proposition *post = fetch_merge(first, q).first;
-            //cout << "case6: pre=" << *merge << ", post=" << *post << ", op=" << *op << endl;
-            if( (merge != post) && !first->is_mutex_with_precondition_of(op) && !first->is_mutex_with_postcondition_of(op) ) {
-                if( dtg.create_transition(merge, dtg.fetch_copy(op, merge, post), post) ) {
-                    dtg.invalidate_link_constraint(op, osi_solver_);
-                }
-            }
-        }
-    }
-    //cout << 6 << endl;
-
-    // update LP
-    int state = dtg.fetch_state(merge);
-    create_flow_and_link_constraints(dtg, *const_cast<Proposition*>(dtg.states_[state]));
-
-    //cout << "chao: first=" << *first << ", second=" << *second << endl;
-    return true;
-}
-
-void Heuristic::create_flow_and_link_constraints(DTG &dtg, Proposition &proposition, vector<CoinPackedVector*> *osi_rows) {
-    int state_id = dtg.proposition_map_.find(&proposition)->second;
-    //vector<const Operator*> incident_operators;
-
-    // create flow constraint
-    if( !proposition.is_undefined() && (dtg.proposition_map_.find(&proposition) != dtg.proposition_map_.end()) ) {
-        if( !dtg.in_[state_id].empty() || !dtg.out_[state_id].empty() ) {
-            CoinPackedVector *osi_row = new CoinPackedVector(true);
-            for( int j = 0; j < dtg.in_[state_id].size(); ++j ) {
-                int tr_id = dtg.in_[state_id][j];
-                //incident_operators.push_back(dtg.labels_[dtg.transitions_[tr_id].first]);
-                if( !dtg.is_prevail_transition(tr_id) ) {
-                    //int oid = dtg.labels_[dtg.transitions_[tr_id].first]->id_;
-                    int lpvar = fetch_lpvar(dtg.labels_[dtg.transitions_[tr_id].first]);
-                    //cout << "Flow: prop=" << proposition << ", producer=" << *dtg.labels_[dtg.transitions_[tr_id].first] << endl;
-                    osi_row->insert(lpvar, 1);
-                }
-            }
-            for( int j = 0; j < dtg.out_[state_id].size(); ++j ) {
-                int tr_id = dtg.out_[state_id][j];
-                //incident_operators.push_back(dtg.labels_[dtg.transitions_[tr_id].first]);
-                if( !dtg.is_prevail_transition(tr_id) ) {
-                    //int oid = dtg.labels_[dtg.transitions_[tr_id].first]->id_;
-                    int lpvar = fetch_lpvar(dtg.labels_[dtg.transitions_[tr_id].first]);
-                    //cout << "Flow: prop=" << proposition << ", consumer=" << *dtg.labels_[dtg.transitions_[tr_id].first] << endl;
-                    osi_row->insert(lpvar, -1);
-                }
-            }
-            if( osi_rows != 0 ) {
-                osi_rows->push_back(osi_row);
-            } else {
-                osi_solver_->addRow(*osi_row, 0, osi_solver_->getInfinity());
-                delete osi_row;
-            }
-            proposition.row_index_ = nconstraints_;
-            ++nconstraints_;
-        }
-    }
-
-    // create link constraints
-    if( dynamic_cast<MergeProposition*>(&proposition) != 0 ) {
-        assert(!proposition.is_undefined());
-
-        // calculate set of non-primitive operators incident at proposition
-#if 0
-        set<const OperatorCopy*> incident_non_primitive_operators;
-        for( size_t i = 0; i < incident_operators.size(); ++i ) {
-            const Operator *op = incident_operators[i];
-            if( dynamic_cast<const OperatorCopy*>(op) != 0 )
-                incident_non_primitive_operators.insert(static_cast<const OperatorCopy*>(op));
-        }
-#endif
-
-        map<const Proposition*, set<const Operator*> >::const_iterator it = dtg.incident_operators_.find(&proposition);
-        if( it != dtg.incident_operators_.end() ) {
-            for( set<const Operator*>::const_iterator jt = it->second.begin(); jt != it->second.end(); ++jt ) {
-                const Operator *op = *jt;
-                //cout << "XXX: dtg=" << &dtg << ", op=" << *op << ", ptr=" << op << endl;
-                assert(dtg.link_constraints_.find(op) != dtg.link_constraints_.end());
-                if( dtg.link_constraints_[op] == -1 ) {
-                    vector<const OperatorCopy*> copies;
-                    map<const Operator*, map<pair<const Proposition*, const Proposition*>, const OperatorCopy*> >::const_iterator kt = dtg.operator_copies_.find(op);
-                    assert(kt != dtg.operator_copies_.end());
-                    for( map<pair<const Proposition*, const Proposition*>, const OperatorCopy*>::const_iterator lt = kt->second.begin(); lt != kt->second.end(); ++lt ) {
-                        const OperatorCopy *cop = lt->second;
-                        if( cop->id_ == -1 ) fetch_lpvar(cop);
-                        copies.push_back(cop);
-                        //fetch_lpvar(cop2);
-                        //if( cop2->id_ != -1 ) copies.push_back(cop2);
-                        //else cout << "UNDEF: cop=" << *cop2 << endl;
-                    }
-
-                    // if some valid copy, generate link constraints
-                    if( !copies.empty() ) {
-                        //cout << "link constraint for var=" << dtg.variable_ << ":" << endl << "  +" << *op << endl;
-                        CoinPackedVector osi_row(true);
-                        osi_row.insert(op->id_, 1);
-                        for( int i = 0; i < copies.size(); ++i ) {
-                            //cout << "  -" << *copies[i] << endl;
-                            osi_row.insert(copies[i]->id_, -1);
-                        }
-                        osi_solver_->addRow(osi_row, 0, osi_solver_->getInfinity());
-                        dtg.link_constraints_[op] = nconstraints_++;
-                    }
-                }
-            }
-        }
-    }
 }
 
 bool Heuristic::refine_lp(Operator *op, Proposition *np, bool operator_consumes_fluent) {
@@ -1965,7 +1714,8 @@ void Heuristic::insert_landmark_constraints() {
 bool Heuristic::solve_lp(const State &state, bool set_active_operators) {
     // call LP solver
     try {
-        //insert_landmark_constraints();
+        //Added for DR + LM-cut
+        insert_landmark_constraints();
         //osi_solver_->writeLp(ss.str().c_str());
         osi_solver_->resolve();
         lp_value_ = (float)osi_solver_->getObjValue();
@@ -2017,8 +1767,24 @@ bool Heuristic::solve_lp(const State &state, bool set_active_operators) {
 
 
 int Heuristic::compute_heuristic(const State &state) {
+    
+
+    //correction for S(a) values
+    //and correct for integer values
+    correct_model(state);
+
+/*
+    bool infeasible = solve_lp(state,true);
+    int heuristic_value = -1;
+    if(infeasible){
+        heuristic_value = DEAD_END;
+    }
+    else{
+        heuristic_value = (int)ceilf(lp_value_);
+    }
+*/
     // Compute hmax value: if dead end, return immediately.
-    #if 0
+
     int hmax_value = safe_to_max_with_hmax_ && (hmax_heuristic_ != 0) ? hmax_heuristic_->compute_heuristic(state) : 0;
     if( hmax_value == DEAD_END ) {
         //histogram_push(0, numeric_limits<int>::max());
@@ -2053,19 +1819,9 @@ int Heuristic::compute_heuristic(const State &state) {
     }
     //histogram_push(0, heuristic_value);
     //cout << "lp-value " << lp_value_ << " h " << heuristic_value << endl;
-    #endif
 
-    //correction for S(a) values
-    //and correct for integer values
-    correct_model(state);
-    bool infeasible = solve_lp(state,true);
-    int heuristic_value = -1;
-    if(infeasible){
-        heuristic_value = DEAD_END;
-    }
-    else{
-        heuristic_value = (int)ceilf(lp_value_);
-    }
+
+    
     //cout <<"value for heuristic = " << lp_value_ << endl;
     return heuristic_value;
 }
@@ -2114,13 +1870,6 @@ void PrimitiveProposition::dump(ostream &os, bool full_info) const {
     }
 }
 
-void MergeProposition::dump(ostream &os, bool full_info) const {
-    os << "f" << id_ << ".merge(" << *first << "," << *second << ")" << flush;
-    if( full_info ) {
-        os << endl;
-        Proposition::dump(os, true);
-    }
-}
 
 void Operator::dump(ostream &os, bool full_info) const {
     if( full_info ) {
@@ -2166,7 +1915,7 @@ void OperatorCopy::dump(ostream &os, bool full_info) const {
 
 int Proposition::nprimitive_variables_;
 const vector<Variable*>* Proposition::variables_;
-const map<pair<int, int>, int>* Proposition::merge_variables_;
+//const map<pair<int, int>, int>* Proposition::merge_variables_;
 
 const vector<set<int> >* Operator::propositions_mutex_with_precondition_;
 const vector<set<int> >* Operator::propositions_mutex_with_postcondition_;
@@ -2176,8 +1925,8 @@ ScalarEvaluator *_parse(OptionParser &parser) {
     parser.add_option<bool>("empty_base_lp", false, string("use an empty base lp"));
     parser.add_option<int>("landmarks", 0, "landmark factory: 0=no factory (default), 1=lmgraph-factory, 2=lmcut-factory");
     parser.add_option<LandmarkGraph *>("lm_graph", 0, "only used (and required) when landmarks=1");
-    parser.add_option<int>("merge_fluents", 0, "merge fluents: 0=no merge (default), 1=merge only at root, 2=always merge");
-    parser.add_option<bool>("merge_goals", false, string("pairwise merge of goals"));
+    //parser.add_option<int>("merge_fluents", 0, "merge fluents: 0=no merge (default), 1=merge only at root, 2=always merge");
+    //parser.add_option<bool>("merge_goals", false, string("pairwise merge of goals")); //to_delete (?)
     parser.add_option<bool>("use_ubs", true, string("use upper bounds in base LP"));
     parser.add_option<string>("lp_solver", string("clp"), string("clp (default), grb, cplex"));
     parser.add_option<float>("epsilon", EPSILON, string("epsilon for marking operator active (default=0.0001)"));
