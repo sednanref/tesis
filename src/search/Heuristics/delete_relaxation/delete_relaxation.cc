@@ -1193,7 +1193,7 @@ bool Heuristic::refine_model(const State &state) {
                 for( int k = 0; k < op.consumes_.size(); ++k ) {
                     Proposition *second = op.consumes_[k];
                     if( second->id_ >= nprimitive_propositions_ ) continue;
-                    if( debug_ ) cout << "  Merge with " << *second << "..." << endl;
+                    //if( debug_ ) cout << "  Merge with " << *second << "..." << endl;
                     //if( !merge_propositions(first, second) ) goto fin;
                     //merge_propositions_using_dtgs(first, second);
                 }
