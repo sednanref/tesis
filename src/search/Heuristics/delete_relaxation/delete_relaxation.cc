@@ -156,8 +156,6 @@ Heuristic::Heuristic(const Options &opts)
     : ::Heuristic(opts),
       empty_base_lp_(opts.get<bool>("empty_base_lp")),
       use_landmarks_(opts.get<int>("landmarks")),
-      //merge_fluents_(opts.get<int>("merge_fluents")), to_delete
-      //merge_goals_(opts.get<bool>("merge_goals")),    to_delete
       use_ubs_(opts.get<bool>("use_ubs")),
       lp_solver_(opts.get<string>("lp_solver")),
       epsilon_(opts.get<float>("epsilon")),
@@ -165,7 +163,7 @@ Heuristic::Heuristic(const Options &opts)
       //Added by del_rel \/
       use_seq_(opts.get<int>("seq")),
       use_tr_(opts.get<int>("tr")) {
-    //merge_done_at_root_ = false; to_delete
+    
     safe_to_max_with_hmax_ = false; // TURN OFF MAXING W/ HMAX
     hmax_heuristic_ = 0;
 
@@ -197,7 +195,6 @@ void Heuristic::initialize() {
 
     // create base model and LP
     create_primitive_variables_and_propositions();
-    //create_primitive_dtgs(); to_delete (?)
     create_primitive_operators();
     //preprocess();
     create_base_lp();
@@ -323,12 +320,6 @@ void Heuristic::create_primitive_operators() {
     operators_.reserve(g_operators.size());
     for( int i = 0; i < g_operators.size(); ++i ) {
         create_primitive_operator(g_operators[i]);
-#if 1
-        /*if( merge_goals_ && operators_[i]->produces_.size() == 2 ) {
-            //cout << "Operator " << *operators_[i] << " produces exactly two fluents" << endl;
-            xxx_operators_.push_back(i);
-        } to_delete (?)*/ 
-#endif
     }
     checked_operators_ = vector<bool>(nprimitive_operators_, false);
     cout << "Base model: " << nprimitive_operators_ << " primitive operators created" << endl;
@@ -1153,8 +1144,7 @@ bool Heuristic::refine_model(const State &state) {
         set_row_bounds(state);
         bool infeasible = solve_lp(state, true);
         if( infeasible ) return true;
-        /*if( merge_fluents_ == 0 ) return false;
-        if( (merge_fluents_ == 1) && merge_done_at_root_ ) return false; to_delete (?)*/
+
 
         // compute primitive operators that must be fixed
         vector<int> operators_to_fix;
@@ -1211,275 +1201,9 @@ bool Heuristic::refine_model(const State &state) {
         if( debug_ ) cout << "#operators = " << operators_.size() << endl;
     }
 
-    // do merge of goals
-    /*if( !merge_done_at_root_ && merge_goals_ ) {
-        cout << "Merge goals" << endl;
-#if 1
-        for( int i = 0; i < xxx_operators_.size(); ++i ) {
-            int opid = xxx_operators_[i];
-            Proposition *first = operators_[opid]->produces_[0];
-            Proposition *second = operators_[opid]->produces_[1];
-            cout << "Merging: " << *first << " and " << *second << endl;
-            merge_propositions(first, second);
-        }
-#endif
-
-
-#if 1 
-        for( int i = 0; i < g_goal.size(); ++i ) {
-            int var1 = g_goal[i].first;
-            int val1 = g_goal[i].second;
-            PrimitiveProposition *first = primitive_propositions_[var1][val1];
-            for( int j = i + 1; j < g_goal.size(); ++j ) {
-                if( i == j ) continue;
-                int var2 = g_goal[j].first;
-                int val2 = g_goal[j].second;
-                PrimitiveProposition *second = primitive_propositions_[var2][val2];
-                cout << "Merging: " << *first << " and " << *second << endl;
-                if( !merge_propositions(first, second) ) goto fin;
-            }
-        }
-#endif
-    }
-
-    // finish
-  fin:
-    if( !merge_done_at_root_ ) {
-        //osi_solver_->saveBaseModel();
-        cout << "LP: value=" << lp_value_
-             << ", #cols=" << osi_solver_->getNumCols()
-             << ", #rows=" << osi_solver_->getNumRows()
-             << " (active=" << osi_solver_->getNumRows() - ninactive_constraints_ << ")"
-             << endl;
-        //osi_solver_->writeLp("state_equation_updated");
-    }
-    merge_done_at_root_ = true;
-    to_delete(?)*/
     return false;
 }
 
-/*
-bool Heuristic::merge_propositions(Proposition *first, Proposition *second) {
-    if( first == second ) {
-        cout << "ERROR: can't merge a proposition with itself" << endl;
-        exit(-1);
-    }
-    if( first->id_ >= nprimitive_propositions_ || second->id_ >= nprimitive_propositions_ ) {
-        cout << "ERROR: only merge of primitive propositions supported" << endl;
-        exit(-1);
-    }
-
-    // set canonical order on merged propositions
-    if( first->id_ > second->id_ ) {
-        Proposition *tmp = first;
-        first = second;
-        second = tmp;
-    }
-
-    // if propositions already merged, do nothing
-    if( merge_propositions_.find(make_pair(first->id_, second->id_)) != merge_propositions_.end() )
-        return true;
-
-    // fetch merged variable (or create if not done yet)
-    pair<map<pair<int, int>, int>::iterator, bool> p =
-      merge_variables_.insert(make_pair(make_pair(first->var_, second->var_), nvariables_));
-    if( p.second ) { // new element was inserted into map
-        variables_.push_back(new MergeVariable(nvariables_++, first->var(), second->var()));
-        //cout << "New variable: " << *variables_.back() << endl;
-    }
-    //int var_id = p.first->second;
-
-    // create merge
-    Proposition *np = new MergeProposition(npropositions_++, first, second);
-    propositions_.push_back(np);
-    //cout << "New proposition: " << *np << endl;
-    merge_propositions_[make_pair(first->id_, second->id_)] = true;
-
-    // update model
-    vector<bool> processed(noperators_, false);
-    np->prevail_of_.reserve(first->prevail_of_.size());
-    np->consumed_by_.reserve(first->prevail_of_.size());
-    np->produced_by_.reserve(first->prevail_of_.size());
-    for( int i = 0; i < first->prevail_of_.size(); ++i ) {
-        // First holds before action
-        Operator *op = first->prevail_of_[i];
-        processed[op->id_] = true;
-        if( second->is_prevail_of(op) ) {
-            // Both propositions are prevail, so merge is prevail
-        } else if( second->is_consumed_by(op) ) {
-            // Second is consumed so it held before action.  Merge was
-            // valid and it is consumed.
-            np->consumed_by_.push_back(op);
-            op->consumes_.push_back(np);
-        } else if( second->is_produced_by(op) ) {
-            // If second is mutex with precondition, then second (and merge) didn't
-            // hold before action and operator produces the merge. Otherwise, create
-            // a copy that produces merge.
-            if( second->is_mutex_with_precondition_of(op) ) {
-                np->produced_by_.push_back(op);
-                op->produces_.push_back(np);
-            } else {
-                if( !add_copy_producer(op, np) ) goto fin;
-            }
-        } else if( second->is_relevant_to(op) ) {
-            if( !add_copy_consumer(op, np) ) goto fin;
-        } else {
-            // Second isn't affected by operator. Any copy would contain merge
-            // as prevail with zero effect on flow constraints.  Do nothing.
-        }
-    }
-
-    np->consumed_by_.reserve(np->consumed_by_.size() + first->consumed_by_.size());
-    np->produced_by_.reserve(np->produced_by_.size() + first->consumed_by_.size());
-    for( int i = 0; i < first->consumed_by_.size(); ++i ) {
-        // First held before applying action.
-        Operator *op = first->consumed_by_[i];
-        processed[op->id_] = true;
-        if( second->is_prevail_of(op) || second->is_consumed_by(op) ) {
-            // Operator consumes merge.
-            np->consumed_by_.push_back(op);
-            op->consumes_.push_back(np);
-        } else if( second->is_produced_by(op) ) {
-            // If second is mutex with precondition, then second (and merge) didn't
-            // hold before action and there is nothing to do. Otherwise, make a copy
-            // that consumes merge.
-            if( !second->is_mutex_with_precondition_of(op) ) {
-                if( !add_copy_consumer(op, np) ) goto fin;
-            }
-        } else if( second->is_relevant_to(op) ) {
-            if( !add_copy_consumer(op, np) ) goto fin;
-        } else {
-            // Second isn't affected by operator, so make copy that consumes merge
-            // (if second isn't mutex with precondition).
-            if( !second->is_mutex_with_precondition_of(op) ) {
-                if( !add_copy_consumer(op, np) ) goto fin;
-            }
-        }
-    }
-
-    np->consumed_by_.reserve(np->consumed_by_.size() + first->produced_by_.size());
-    np->produced_by_.reserve(np->produced_by_.size() + first->produced_by_.size());
-    for( int i = 0; i < first->produced_by_.size(); ++i ) {
-        // Need to consider whether first is mutex with precondition of operator
-        Operator *op = first->produced_by_[i];
-        processed[op->id_] = true;
-        if( second->is_prevail_of(op) ) {
-            if( first->is_mutex_with_precondition_of(op) ) {
-                // Operator produces merge.
-                np->produced_by_.push_back(op);
-                op->produces_.push_back(np);
-            } else {
-                // First may hold or not before applying operator. Make a copy
-                // that produces merge (if first isn't mutex with postcondition)
-                if( !add_copy_producer(op, np) ) goto fin;
-            }
-        } else if( second->is_consumed_by(op) ) {
-            if( !first->is_mutex_with_precondition_of(op) ) {
-                // First may hold before applying operator.
-                // Make copy that consumes merge.
-                if( !add_copy_consumer(op, np) ) goto fin;
-            }
-        } else if( second->is_produced_by(op) ) {
-            if( !first->is_mutex_with_precondition_of(op) && !second->is_mutex_with_precondition_of(op) ) {
-                // First and second may hold or not before applying operator. Make a
-                // copy that produces merge
-                if( !add_copy_producer(op, np) ) goto fin;
-            } else {
-                // First and second don't hold before applying operator.
-                // Operator produces merge
-                np->produced_by_.push_back(op);
-                op->produces_.push_back(np);
-            }
-        } else if( second->is_relevant_to(op) ) {
-            if( !first->is_mutex_with_precondition_of(op) ) {
-                // First may hold before applying operator.
-                // Make copy that consumes merge.
-                if( !add_copy_consumer(op, np) ) goto fin;
-            }
-        } else {
-            if( !second->is_mutex_with_precondition_of(op) && !second->is_mutex_with_postcondition_of(op) ) {
-                // Second may hold before applying operator and isn't deleted.
-                // Make a copy that produces merge.
-                if( !add_copy_producer(op, np) ) goto fin;
-            }
-        }
-    }
-
-    np->consumed_by_.reserve(np->consumed_by_.size() + first->produced_by_.size());
-    for( int i = 0; i < first->relevant_to_.size(); ++i ) {
-        Operator *op = first->relevant_to_[i];
-        processed[op->id_] = true;
-        if( second->is_prevail_of(op) || second->is_consumed_by(op) ) {
-            if( !add_copy_consumer(op, np) ) goto fin;
-        } else if( second->is_produced_by(op) ) {
-            if( !second->is_mutex_with_precondition_of(op) ) {
-                if( !add_copy_consumer(op, np) ) goto fin;
-            }
-        } else if( second->is_relevant_to(op) ) {
-            if( !add_copy_consumer(op, np) ) goto fin;
-        } else {
-            if( !second->is_mutex_with_precondition_of(op) ) {
-                if( !add_copy_consumer(op, np) ) goto fin;
-            }
-        }
-    }
-
-    np->consumed_by_.reserve(np->consumed_by_.size() + second->consumed_by_.size());
-    for( int i = 0; i < second->consumed_by_.size(); ++i ) {
-        // Second held and is consumed, and first isn't affected.
-        Operator *op = second->consumed_by_[i];
-        if( !processed[op->id_] ) {
-            // Make copy that consumes (if first isn't mutex with precondition).
-            if( !first->is_mutex_with_precondition_of(op) ) {
-                if( !add_copy_consumer(op, np) ) goto fin;
-            }
-        }
-    }
-
-    np->produced_by_.reserve(np->produced_by_.size() + second->produced_by_.size());
-    for( int i = 0; i < second->produced_by_.size(); ++i ) {
-        // Second is produced and first isn't affected.  Need to consider whether
-        // second is mutex with precondition
-        Operator *op = second->produced_by_[i];
-        if( !processed[op->id_] ) {
-            if( !first->is_mutex_with_precondition_of(op) && !first->is_mutex_with_postcondition_of(op) ) {
-                if( !add_copy_producer(op, np) ) goto fin;
-            }
-        }
-    }
-
-    np->consumed_by_.reserve(np->consumed_by_.size() + second->consumed_by_.size());
-    for( int i = 0; i < second->relevant_to_.size(); ++i ) {
-        Operator *op = second->relevant_to_[i];
-        if( !processed[op->id_] ) {
-            if( !first->is_mutex_with_precondition_of(op) ) {
-                if( !add_copy_consumer(op, np) ) goto fin;
-            }
-        }
-    }
-
-  fin:
-    operators_active_in_solution_.resize(noperators_, false);
-
-    // Update LP with flow constraint for new proposition
-    np->row_index_ = nconstraints_++;
-    CoinPackedVector *osi_row = new CoinPackedVector(true);
-    for( int i = 0; i < np->produced_by_.size(); ++i ) {
-        int oid = np->produced_by_[i]->id_;
-        osi_row->insert(oid, 1);
-    }
-    for( int i = 0; i < np->consumed_by_.size(); ++i ) {
-        int oid = np->consumed_by_[i]->id_;
-        osi_row->insert(oid, -1);
-    }
-    osi_solver_->addRow(*osi_row, -1.0 * osi_solver_->getInfinity(), osi_solver_->getInfinity());
-    set_row_name(np);
-    delete osi_row;
-    //np->dump(cout, true);
-    return true;
-    //return noperators_ < 10 * nprimitive_operators_;
-}
-to_delete(?)*/
 
 pair<const UndefinedProposition*, bool> Heuristic::fetch_undefined(int var) {
     pair<map<int, int>::iterator, bool> p = undefined_propositions_.insert(make_pair(var, npropositions_));
@@ -1493,37 +1217,6 @@ pair<const UndefinedProposition*, bool> Heuristic::fetch_undefined(int var) {
     }
 }
 
-/*
-pair<const MergeVariable*, bool> Heuristic::fetch_merge(const Variable *first, const Variable *second) {
-    assert((first != 0) && (second != 0));
-    pair<map<pair<int, int>, int>::iterator, bool> p =
-      merge_variables_.insert(make_pair(make_pair(first->id_, second->id_), nvariables_));
-    if( p.second ) { // new element was inserted into map
-        MergeVariable *merge = new MergeVariable(nvariables_++, first, second);
-        variables_.push_back(merge);
-        dtgs_.push_back(new DTG(*merge));
-        //cout << "New variable: " << *merge << endl;
-        return make_pair(merge, true);
-    } else {
-        return make_pair(static_cast<MergeVariable*>(variables_[p.first->second]), false);
-    }
-}
-
-pair<const MergeProposition*, bool> Heuristic::fetch_merge(const Proposition *first, const Proposition *second) {
-    assert((first != 0) && (second != 0));
-    pair<map<pair<const Proposition*, const Proposition*>, int>::iterator, bool> p =
-      xxx_merge_propositions_.insert(make_pair(make_pair(first, second), npropositions_));
-    if( p.second ) { // new element was inserted into map
-        fetch_merge(first->var(), second->var());
-        MergeProposition *merge = new MergeProposition(npropositions_++, first, second);
-        propositions_.push_back(merge);
-        //cout << "New proposition: " << *np << endl;
-        return make_pair(merge, true);
-    } else {
-        return make_pair(static_cast<MergeProposition*>(propositions_[p.first->second]), false);
-    }
-}
-to_delete (?)*/
 int Heuristic::fetch_lpvar(const Operator *op) {
     if( op->id_ == -1 ) {
         assert(dynamic_cast<const OperatorCopy*>(op) != 0);
@@ -1925,8 +1618,6 @@ ScalarEvaluator *_parse(OptionParser &parser) {
     parser.add_option<bool>("empty_base_lp", false, string("use an empty base lp"));
     parser.add_option<int>("landmarks", 0, "landmark factory: 0=no factory (default), 1=lmgraph-factory, 2=lmcut-factory");
     parser.add_option<LandmarkGraph *>("lm_graph", 0, "only used (and required) when landmarks=1");
-    //parser.add_option<int>("merge_fluents", 0, "merge fluents: 0=no merge (default), 1=merge only at root, 2=always merge");
-    //parser.add_option<bool>("merge_goals", false, string("pairwise merge of goals")); //to_delete (?)
     parser.add_option<bool>("use_ubs", true, string("use upper bounds in base LP"));
     parser.add_option<string>("lp_solver", string("clp"), string("clp (default), grb, cplex"));
     parser.add_option<float>("epsilon", EPSILON, string("epsilon for marking operator active (default=0.0001)"));
