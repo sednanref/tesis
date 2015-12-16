@@ -568,6 +568,7 @@ void Heuristic::correct_model(const State &state){
             int idx = 0;
             idx+=indexes_begin_var_[var];
             idx+=val;
+            idx+=begin_first_const_;
             osi_solver_->setRowLower(idx,-1);
         }
     }
@@ -1085,6 +1086,7 @@ void Heuristic::create_base_lp() {
     osi_row_lb.clear(); osi_row_ub.clear();
 
     add_first_const(&osi_col_lb);
+    begin_first_const_=nconstraints_;
 
     add_second_const(&osi_rows,osi_row_lb,osi_row_ub);
 

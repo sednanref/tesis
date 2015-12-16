@@ -388,6 +388,7 @@ class Heuristic : public ::Heuristic {
     int nprop_;
     int nvars_without_seq_;                        //equal to nopr_ if we use SEQ
     int begin_const_seq_;                       //index in constraints where SEQ constraints begin without 
+    int begin_first_const_;
                                                 //counting constraints like Yo>=Uo
     int end_const_seq_;                         //index in constraints where SEQ constrains end
 
