@@ -1084,6 +1084,10 @@ void Heuristic::create_base_lp() {
     }
 
     osi_row_lb.clear(); osi_row_ub.clear();
+    for(int i=0;i<nconstraints_;i++){
+        osi_row_lb.push_back(-1e6);
+        osi_row_ub.push_back(osi_solver_->getInfinity());
+    }
 
     add_first_const(&osi_col_lb);
     begin_first_const_=nconstraints_;
