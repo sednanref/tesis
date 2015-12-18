@@ -964,6 +964,7 @@ void Heuristic::create_base_lp() {
     if(0x1 & use_seq_){
         begin_yo_=nvars_;
         end_yo_=nvars_+=nopr_;
+                cout << cc << endl;
     }
 
     // Variables
@@ -1047,6 +1048,10 @@ void Heuristic::create_base_lp() {
         }
     }
 #else
+    //linea agregada para que funcionen lo de los constraints de merge
+    //unica linea agregada en el ultimo commit
+    noperators_ = nvars_;
+
     for( int i = 0; !empty_base_lp_ && (i < npropositions_); ++i ) {
         Proposition &prop = *propositions_[i];
         assert((0 <= prop.var_) && (prop.var_ < dtgs_.size()));
