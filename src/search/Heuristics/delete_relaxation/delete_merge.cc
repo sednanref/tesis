@@ -964,7 +964,7 @@ void Heuristic::create_base_lp() {
     if(0x1 & use_seq_){
         begin_yo_=nvars_;
         end_yo_=nvars_+=nopr_;
-                cout << cc << endl;
+                //cout << cc << endl;
     }
 
     // Variables
