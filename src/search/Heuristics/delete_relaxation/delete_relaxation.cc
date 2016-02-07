@@ -1141,7 +1141,7 @@ bool Heuristic::refine_model(const State &state) {
         change = false;
 
         // solve lp for given state
-        set_row_bounds(state);
+        //set_row_bounds(state);
         bool infeasible = solve_lp(state, true);
         return infeasible;
 
