@@ -956,7 +956,7 @@ void Heuristic::create_base_lp() {
     add_fs();
     end_f_=nvars_;
 
-    nvars_without_seq_=end_yo_;
+    nvars_without_seq_=end_yo;
 
     // Variables
     //the first nopr variables refers to U variables in delete relaxation
