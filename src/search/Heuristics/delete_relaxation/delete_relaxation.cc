@@ -1143,7 +1143,7 @@ bool Heuristic::refine_model(const State &state) {
         // solve lp for given state
         set_row_bounds(state);
         bool infeasible = solve_lp(state, true);
-        if( infeasible ) return true;
+        return infeasible;
 
 
         // compute primitive operators that must be fixed
