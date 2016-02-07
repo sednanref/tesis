@@ -1235,6 +1235,14 @@ int Heuristic::fetch_lpvar(const Operator *op) {
     return op->id_;
 }
 
+void MergeProposition::dump(ostream &os, bool full_info) const {
+    os << "f" << id_ << ".merge(" << *first << "," << *second << ")" << flush;
+    if( full_info ) {
+        os << endl;
+        Proposition::dump(os, true);
+    }
+}
+
 void Heuristic::create_flow_and_link_constraints(DTG &dtg, Proposition &proposition, vector<CoinPackedVector*> *osi_rows) {
     int state_id = dtg.proposition_map_.find(&proposition)->second;
     //vector<const Operator*> incident_operators;
