@@ -1235,6 +1235,96 @@ int Heuristic::fetch_lpvar(const Operator *op) {
     return op->id_;
 }
 
+void Heuristic::create_flow_and_link_constraints(DTG &dtg, Proposition &proposition, vector<CoinPackedVector*> *osi_rows) {
+    int state_id = dtg.proposition_map_.find(&proposition)->second;
+    //vector<const Operator*> incident_operators;
+
+    // create flow constraint
+    if( !proposition.is_undefined() && (dtg.proposition_map_.find(&proposition) != dtg.proposition_map_.end()) ) {
+        if( !dtg.in_[state_id].empty() || !dtg.out_[state_id].empty() ) {
+            CoinPackedVector *osi_row = new CoinPackedVector(true);
+            for( int j = 0; j < dtg.in_[state_id].size(); ++j ) {
+                int tr_id = dtg.in_[state_id][j];
+                //incident_operators.push_back(dtg.labels_[dtg.transitions_[tr_id].first]);
+                if( !dtg.is_prevail_transition(tr_id) ) {
+                    //int oid = dtg.labels_[dtg.transitions_[tr_id].first]->id_;
+                    int lpvar = fetch_lpvar(dtg.labels_[dtg.transitions_[tr_id].first]);
+                    //cout << "Flow: prop=" << proposition << ", producer=" << *dtg.labels_[dtg.transitions_[tr_id].first] << endl;
+                    osi_row->insert(lpvar, 1);
+                }
+            }
+            for( int j = 0; j < dtg.out_[state_id].size(); ++j ) {
+                int tr_id = dtg.out_[state_id][j];
+                //incident_operators.push_back(dtg.labels_[dtg.transitions_[tr_id].first]);
+                if( !dtg.is_prevail_transition(tr_id) ) {
+                    //int oid = dtg.labels_[dtg.transitions_[tr_id].first]->id_;
+                    int lpvar = fetch_lpvar(dtg.labels_[dtg.transitions_[tr_id].first]);
+                    //cout << "Flow: prop=" << proposition << ", consumer=" << *dtg.labels_[dtg.transitions_[tr_id].first] << endl;
+                    osi_row->insert(lpvar, -1);
+                }
+            }
+            if( osi_rows != 0 ) {
+                osi_rows->push_back(osi_row);
+            } else {
+                osi_solver_->addRow(*osi_row, 0, osi_solver_->getInfinity());
+                delete osi_row;
+            }
+            proposition.row_index_ = nconstraints_;
+            ++nconstraints_;
+        }
+    }
+
+    // create link constraints
+    if( dynamic_cast<MergeProposition*>(&proposition) != 0 ) {
+        assert(!proposition.is_undefined());
+
+        // calculate set of non-primitive operators incident at proposition
+#if 0
+        set<const OperatorCopy*> incident_non_primitive_operators;
+        for( size_t i = 0; i < incident_operators.size(); ++i ) {
+            const Operator *op = incident_operators[i];
+            if( dynamic_cast<const OperatorCopy*>(op) != 0 )
+                incident_non_primitive_operators.insert(static_cast<const OperatorCopy*>(op));
+        }
+#endif
+
+        map<const Proposition*, set<const Operator*> >::const_iterator it = dtg.incident_operators_.find(&proposition);
+        if( it != dtg.incident_operators_.end() ) {
+            for( set<const Operator*>::const_iterator jt = it->second.begin(); jt != it->second.end(); ++jt ) {
+                const Operator *op = *jt;
+                //cout << "XXX: dtg=" << &dtg << ", op=" << *op << ", ptr=" << op << endl;
+                assert(dtg.link_constraints_.find(op) != dtg.link_constraints_.end());
+                if( dtg.link_constraints_[op] == -1 ) {
+                    vector<const OperatorCopy*> copies;
+                    map<const Operator*, map<pair<const Proposition*, const Proposition*>, const OperatorCopy*> >::const_iterator kt = dtg.operator_copies_.find(op);
+                    assert(kt != dtg.operator_copies_.end());
+                    for( map<pair<const Proposition*, const Proposition*>, const OperatorCopy*>::const_iterator lt = kt->second.begin(); lt != kt->second.end(); ++lt ) {
+                        const OperatorCopy *cop = lt->second;
+                        if( cop->id_ == -1 ) fetch_lpvar(cop);
+                        copies.push_back(cop);
+                        //fetch_lpvar(cop2);
+                        //if( cop2->id_ != -1 ) copies.push_back(cop2);
+                        //else cout << "UNDEF: cop=" << *cop2 << endl;
+                    }
+
+                    // if some valid copy, generate link constraints
+                    if( !copies.empty() ) {
+                        //cout << "link constraint for var=" << dtg.variable_ << ":" << endl << "  +" << *op << endl;
+                        CoinPackedVector osi_row(true);
+                        osi_row.insert(op->id_, 1);
+                        for( int i = 0; i < copies.size(); ++i ) {
+                            //cout << "  -" << *copies[i] << endl;
+                            osi_row.insert(copies[i]->id_, -1);
+                        }
+                        osi_solver_->addRow(osi_row, 0, osi_solver_->getInfinity());
+                        dtg.link_constraints_[op] = nconstraints_++;
+                    }
+                }
+            }
+        }
+    }
+}
+
 bool Heuristic::refine_lp(Operator *op, Proposition *np, bool operator_consumes_fluent) {
     // check if e have reached maximum number of operators
     //if( noperators_ >= 10 * nprimitive_operators_ ) return false;
