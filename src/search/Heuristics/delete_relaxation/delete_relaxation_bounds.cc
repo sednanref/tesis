@@ -930,6 +930,7 @@ void Heuristic::create_base_lp() {
     nopr_  = noperators_;
     nvars_without_seq_ = 0;
     nvars_ = 0;
+    begin_to_=end_to_=begin_ta_=end_ta_=begin_yo_=end_yo_=-1;
     if(0x1 & use_seq_){
         begin_yo_=nvars_;
         end_yo_=nvars_+=nopr_;
@@ -937,7 +938,6 @@ void Heuristic::create_base_lp() {
     //variables in delete relaxation model
     begin_uo_=nvars_;
     end_uo_=nvars_+=nopr_;
-    begin_to_=end_to_=begin_ta_=end_ta_=begin_yo_=end_yo_=-1;
 
     if((use_tr_&0x1)==0){
         begin_to_=nvars_;
