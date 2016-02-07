@@ -1039,13 +1039,13 @@ void Heuristic::create_base_lp() {
             ++nconstraints_;
         }
     }
-
+#endif
     for( int i = 0; !empty_base_lp_ && (i < npropositions_); ++i ) {
         Proposition &prop = *propositions_[i];
         assert((0 <= prop.var_) && (prop.var_ < dtgs_.size()));
         DTG &dtg = *dtgs_[prop.var_];
         create_flow_and_link_constraints(dtg, prop, &osi_rows);
-
+#if 0
         if( dtg.proposition_map_.find(&prop) != dtg.proposition_map_.end() ) {
             int state_id = dtg.proposition_map_.find(&prop)->second;
             assert(state_id != dtg.undef_state_);
@@ -1075,7 +1075,7 @@ void Heuristic::create_base_lp() {
 
     }
 #else
-
+}
 
     osi_row_lb.clear(); osi_row_ub.clear();
 
