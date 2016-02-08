@@ -196,7 +196,7 @@ void Heuristic::initialize() {
     // create base model and LP
     create_primitive_variables_and_propositions();
     create_primitive_operators();
-    //preprocess();
+    preprocess();
     create_base_lp();
 
     // Create and initialize hmax heuristic.
@@ -1323,9 +1323,9 @@ void Heuristic::set_row_bounds(const State &state) {
                 }
             }
             //cout << "bound: p=" << *prop << ", lb=" << lower_bound << ", ub=" << upper_bound << endl;
-            osi_solver_->setRowLower(prop->row_index_, lower_bound);
-            //if( use_ubs_ ) 
-            osi_solver_->setRowUpper(prop->row_index_, upper_bound);
+            osi_solver_->setRowLower(init, lower_bound);
+            if( use_ubs_ ) 
+                osi_solver_->setRowUpper(init, upper_bound);
             init++;
     }
     }
