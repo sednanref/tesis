@@ -1415,7 +1415,8 @@ bool Heuristic::solve_lp(const State &state, bool set_active_operators) {
     // call LP solver
     try {
         //Added for DR + LM-cut
-        insert_landmark_constraints();
+        if(use_landmarks_ & 0x2)
+            insert_landmark_constraints();
         //osi_solver_->writeLp(ss.str().c_str());
         osi_solver_->resolve();
         lp_value_ = (float)osi_solver_->getObjValue();
