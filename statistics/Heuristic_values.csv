@@ -1,4 +1,3 @@
-Domain,Instance,DR,DR+TR+NC+LM,NC+LM,NC
 airport,p01-airport1-p1.pddl,3,8,8,1
 airport,p02-airport1-p1.pddl,9,9,9,9
 airport,p03-airport1-p2.pddl,13,17,,
